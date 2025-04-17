@@ -82,7 +82,7 @@
       font-size: 18px;
       font-weight: 500;
     }
-    /* Sections (pages) – hidden by default */
+    /* Sections – hidden by default */
     .section {
       display: none;
       padding: 30px;
@@ -336,13 +336,15 @@
         <option value="Philippines">Philippines</option>
       </select>
       <label for="candidate-age">Age:</label>
-      <input type="text" id="candidate-age" required/>
+      <input type="text" id="candidate-age" required />
       <label for="candidate-experience">Experience &amp; Details:</label>
-      <input type="text" id="candidate-experience" required/>
+      <input type="text" id="candidate-experience" required />
       <label for="candidate-languages">Languages:</label>
-      <input type="text" id="candidate-languages" required/>
+      <input type="text" id="candidate-languages" required />
       <label for="candidate-skills">Skills:</label>
-      <input type="text" id="candidate-skills" required/>
+      <input type="text" id="candidate-skills" required />
+      <label for="candidate-secretary">Secretary In Charge:</label>
+      <input type="text" id="candidate-secretary" required />
       <label for="candidate-image">Candidate Image:</label>
       <input type="file" id="candidate-image" accept="image/*" required />
       <button type="submit">Add Candidate</button>
@@ -470,7 +472,10 @@
       document.getElementById("reserved-section-div").style.display = "block";
       loadReservedCandidates();
     };
-    // Load candidates for a given country into a container.
+    // ----------------------------- 
+    // Candidate Listing and Editing Functions
+    // -----------------------------
+    // Load candidates for a given country (only unreserved ones)
     async function loadCandidatesForSection(country, containerId) {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
@@ -488,7 +493,7 @@
         querySnapshot.forEach(docSnap => {
           const candidate = docSnap.data();
           const candidateId = docSnap.id;
-          // If candidate already reserved, skip rendering in country section.
+          // Skip candidate if reserved
           if (reservedMap[candidateId]) return;
           const card = document.createElement('div');
           card.className = 'item-card';
@@ -498,15 +503,17 @@
               <strong>Age:</strong> ${candidate.age}<br>
               <strong>Experience:</strong> ${candidate.experience}<br>
               <strong>Languages:</strong> ${candidate.languages}<br>
-              <strong>Skills:</strong> ${candidate.skills}
+              <strong>Skills:</strong> ${candidate.skills}<br>
+              <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
             </p>
           `;
+          // Add Reserve button
           const reserveBtn = document.createElement("button");
           reserveBtn.innerText = "Reserve";
           reserveBtn.className = "reserve-button";
           reserveBtn.onclick = function() { reserveCandidate(candidateId, country, containerId); };
           card.appendChild(reserveBtn);
-          // If authorized, add a red Delete button (for administrators/maid managers)
+          // If authorized, add Delete and Edit buttons
           if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
             const deleteBtn = document.createElement("button");
             deleteBtn.innerText = "Delete";
@@ -518,6 +525,30 @@
             deleteBtn.style.marginTop = "10px";
             deleteBtn.onclick = function() { deleteCandidate(candidateId, containerId, country); };
             card.appendChild(deleteBtn);
+            // Edit Button and hidden form for editing candidate info
+            const editBtn = document.createElement("button");
+            editBtn.innerText = "Edit";
+            editBtn.style.backgroundColor = "#2196F3";
+            editBtn.style.color = "#fff";
+            editBtn.style.border = "none";
+            editBtn.style.padding = "8px 12px";
+            editBtn.style.cursor = "pointer";
+            editBtn.style.marginTop = "10px";
+            editBtn.onclick = function() { toggleEditForm(candidateId); };
+            card.appendChild(editBtn);
+            const editFormDiv = document.createElement("div");
+            editFormDiv.id = "edit-form-" + candidateId;
+            editFormDiv.style.display = "none";
+            editFormDiv.innerHTML = `
+              <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
+              <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
+              <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
+              <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
+              <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
+              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')">Save</button>
+              <button onclick="cancelEditCandidate('${candidateId}')">Cancel</button>
+            `;
+            card.appendChild(editFormDiv);
           }
           container.appendChild(card);
         });
@@ -525,17 +556,7 @@
         console.error("Error loading candidates for section:", err);
       }
     }
-    // Reserve a candidate by creating/updating a document in the "reservations" collection.
-    async function reserveCandidate(candidateId, country, containerId) {
-      try {
-        await setDoc(doc(db, "reservations", candidateId), { reserved: true, reservedBy: window.currentUser.username });
-        loadCandidatesForSection(country, containerId);
-      } catch (err) {
-        console.error("Error reserving candidate:", err);
-        alert("Error reserving candidate.");
-      }
-    }
-    // New function: Load reserved candidates.
+    // Load reserved candidates for Reserved section
     async function loadReservedCandidates() {
       const container = document.getElementById("reserved-candidates-container");
       container.innerHTML = "";
@@ -544,7 +565,6 @@
         let reservedList = [];
         resSnapshot.forEach(docSnap => {
           const resData = docSnap.data();
-          // For non-admins, only include if reservedBy matches current user.
           if (window.currentUser.role !== "administrator") {
             if (resData.reservedBy === window.currentUser.username) {
               reservedList.push({ candidateId: docSnap.id, ...resData });
@@ -557,11 +577,11 @@
           container.innerHTML = "<p>No reserved candidates available.</p>";
           return;
         }
-        // For each reserved candidate, fetch candidate details.
         for (const reservation of reservedList) {
           const candidateDoc = await getDoc(doc(db, "candidates", reservation.candidateId));
           if (candidateDoc.exists()) {
             const candidate = candidateDoc.data();
+            const candidateId = reservation.candidateId;
             const card = document.createElement('div');
             card.className = 'item-card';
             let extraInfo = "";
@@ -575,17 +595,42 @@
                 <strong>Experience:</strong> ${candidate.experience}<br>
                 <strong>Languages:</strong> ${candidate.languages}<br>
                 <strong>Skills:</strong> ${candidate.skills}<br>
+                <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}<br>
                 ${extraInfo}
               </p>
             `;
-            // Add a Cancel Reservation button if the reservation belongs to the current user (or user is admin)
-            if(window.currentUser.role === "administrator" || reservation.reservedBy === window.currentUser.username){
+            if (window.currentUser.role === "administrator" || reservation.reservedBy === window.currentUser.username) {
               const cancelReserveBtn = document.createElement("button");
               cancelReserveBtn.innerText = "Cancel Reservation";
               cancelReserveBtn.className = "reserve-button";
               cancelReserveBtn.style.backgroundColor = "#f44336";
-              cancelReserveBtn.onclick = function() { cancelReservation(reservation.candidateId, null, "reserved-candidates-container", true); };
+              cancelReserveBtn.onclick = function() { cancelReservation(candidateId, null, "reserved-candidates-container", true); };
               card.appendChild(cancelReserveBtn);
+            }
+            if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
+              const editBtn = document.createElement("button");
+              editBtn.innerText = "Edit";
+              editBtn.style.backgroundColor = "#2196F3";
+              editBtn.style.color = "#fff";
+              editBtn.style.border = "none";
+              editBtn.style.padding = "8px 12px";
+              editBtn.style.cursor = "pointer";
+              editBtn.style.marginTop = "10px";
+              editBtn.onclick = function() { toggleEditForm(candidateId); };
+              card.appendChild(editBtn);
+              const editFormDiv = document.createElement("div");
+              editFormDiv.id = "edit-form-" + candidateId;
+              editFormDiv.style.display = "none";
+              editFormDiv.innerHTML = `
+                <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
+                <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
+                <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
+                <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
+                <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
+                <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'reserved')">Save</button>
+                <button onclick="cancelEditCandidate('${candidateId}')">Cancel</button>
+              `;
+              card.appendChild(editFormDiv);
             }
             container.appendChild(card);
           }
@@ -594,7 +639,17 @@
         console.error("Error loading reserved candidates:", err);
       }
     }
-    // Cancel a reservation – optionally reloading the reserved candidates section if in reserved mode.
+    // Reserve a candidate by adding a document in "reservations"
+    async function reserveCandidate(candidateId, country, containerId) {
+      try {
+        await setDoc(doc(db, "reservations", candidateId), { reserved: true, reservedBy: window.currentUser.username });
+        loadCandidatesForSection(country, containerId);
+      } catch (err) {
+        console.error("Error reserving candidate:", err);
+        alert("Error reserving candidate.");
+      }
+    }
+    // Cancel a reservation
     async function cancelReservation(candidateId, country, containerId, reservedMode = false) {
       try {
         await deleteDoc(doc(db, "reservations", candidateId));
@@ -608,12 +663,11 @@
         alert("Error cancelling reservation.");
       }
     }
-    // Delete candidate: remove the candidate document (and associated reservation), then reload the section.
+    // Delete candidate & associated reservation
     window.deleteCandidate = async function(candidateId, containerId, country) {
       if (confirm("Are you sure you want to delete this candidate?")) {
         try {
           await deleteDoc(doc(db, "candidates", candidateId));
-          // Remove any reservation record if present.
           await deleteDoc(doc(db, "reservations", candidateId));
           loadCandidatesForSection(country, containerId);
         } catch (err) {
@@ -621,9 +675,51 @@
         }
       }
     };
-    // -------------------------
-    // Admin Panel Functionality (User Management)
-    // -------------------------
+    // -----------------------------
+    // Candidate Editing Functions
+    // -----------------------------
+    window.toggleEditForm = function(candidateId) {
+      const formDiv = document.getElementById("edit-form-" + candidateId);
+      formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
+    };
+    window.cancelEditCandidate = function(candidateId) {
+      document.getElementById("edit-form-" + candidateId).style.display = "none";
+    };
+    window.updateCandidate = async function(candidateId, country, context) {
+      const updatedAge = document.getElementById(`edit-age-${candidateId}`).value;
+      const updatedExp = document.getElementById(`edit-exp-${candidateId}`).value;
+      const updatedLang = document.getElementById(`edit-lang-${candidateId}`).value;
+      const updatedSkill = document.getElementById(`edit-skill-${candidateId}`).value;
+      const updatedSec = document.getElementById(`edit-sec-${candidateId}`).value;
+      try {
+        await updateDoc(doc(db, "candidates", candidateId), {
+          age: updatedAge,
+          experience: updatedExp,
+          languages: updatedLang,
+          skills: updatedSkill,
+          secretaryInCharge: updatedSec
+        });
+        document.getElementById("edit-form-" + candidateId).style.display = "none";
+        if (context === "reserved") {
+          loadReservedCandidates();
+        } else {
+          let containerId = "";
+          const c = country.toLowerCase();
+          if (c === "sri lanka") containerId = "candidates-sri-lanka";
+          else if (c === "nepal") containerId = "candidates-nepal";
+          else if (c === "india") containerId = "candidates-india";
+          else if (c === "africa") containerId = "candidates-africa";
+          else if (c === "philippines") containerId = "candidates-philippines";
+          loadCandidatesForSection(country, containerId);
+        }
+      } catch (err) {
+        console.error("Error updating candidate:", err);
+        alert("Error updating candidate.");
+      }
+    };
+    // -----------------------------
+    // Admin Panel (User Management) Functions
+    // -----------------------------
     window.showAdminPanel = function() {
       document.getElementById("admin-panel").style.display = "block";
       loadUsersList();
@@ -631,7 +727,6 @@
     window.hideAdminPanel = function() {
       document.getElementById("admin-panel").style.display = "none";
     };
-    // Add User Form
     document.getElementById("add-user-form").addEventListener("submit", async function(event) {
       event.preventDefault();
       const newUsername = document.getElementById("new-username").value.trim();
@@ -659,7 +754,6 @@
         console.error("Error:", error);
       }
     });
-    // Load and display users for management.
     async function loadUsersList() {
       const usersListDiv = document.getElementById("users-list");
       usersListDiv.innerHTML = "";
@@ -830,6 +924,7 @@
       const experience = document.getElementById("candidate-experience").value;
       const languages = document.getElementById("candidate-languages").value;
       const skills = document.getElementById("candidate-skills").value;
+      const secretary = document.getElementById("candidate-secretary").value;
       const imageFile = document.getElementById("candidate-image").files[0];
       const errorElem = document.getElementById("candidate-add-error");
       const successElem = document.getElementById("candidate-add-success");
@@ -847,6 +942,7 @@
           experience,
           languages,
           skills,
+          secretaryInCharge: secretary,
           imageUrl,
           timestamp: Date.now()
         });
@@ -855,6 +951,7 @@
         document.getElementById("candidate-experience").value = "";
         document.getElementById("candidate-languages").value = "";
         document.getElementById("candidate-skills").value = "";
+        document.getElementById("candidate-secretary").value = "";
         document.getElementById("candidate-image").value = "";
         loadAllCandidates();
       } catch (e) {
@@ -862,7 +959,7 @@
         console.error(e);
       }
     });
-    // Load all candidates for the Candidate Management Panel.
+    // Load all candidates for the Candidate Management Panel
     async function loadAllCandidates() {
       const candidatesListDiv = document.getElementById("candidates-list");
       candidatesListDiv.innerHTML = "";
@@ -880,7 +977,8 @@
               <strong>Country:</strong> ${candidate.country}<br>
               <strong>Experience:</strong> ${candidate.experience}<br>
               <strong>Languages:</strong> ${candidate.languages}<br>
-              <strong>Skills:</strong> ${candidate.skills}
+              <strong>Skills:</strong> ${candidate.skills}<br>
+              <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
             </p>
           `;
           if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
@@ -897,6 +995,29 @@
               loadAllCandidates();
             };
             candidateDiv.appendChild(delButton);
+            const editBtn = document.createElement("button");
+            editBtn.innerText = "Edit";
+            editBtn.style.backgroundColor = "#2196F3";
+            editBtn.style.color = "#fff";
+            editBtn.style.border = "none";
+            editBtn.style.padding = "8px 12px";
+            editBtn.style.cursor = "pointer";
+            editBtn.style.marginTop = "10px";
+            editBtn.onclick = function() { toggleEditForm(candidateId); };
+            candidateDiv.appendChild(editBtn);
+            const editFormDiv = document.createElement("div");
+            editFormDiv.id = "edit-form-" + candidateId;
+            editFormDiv.style.display = "none";
+            editFormDiv.innerHTML = `
+              <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
+              <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
+              <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
+              <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
+              <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
+              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')">Save</button>
+              <button onclick="cancelEditCandidate('${candidateId}')">Cancel</button>
+            `;
+            candidateDiv.appendChild(editFormDiv);
           }
           candidatesListDiv.appendChild(candidateDiv);
         });
@@ -908,30 +1029,9 @@
     async function initializeCandidates() {
       const q = await getDocs(collection(db, "candidates"));
       if (q.empty) {
-        // SRILANKA
-        await setDoc(doc(db, "candidates", "SRILANKA1"), { country: "Sri Lanka", age: "29 years old", experience: "1 yr & 2 months in kuwait", languages: "Arabic/English", skills: "Cleaning/ironing/washing", imageUrl: "https://imgur.com/SHfuTe6.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "SRILANKA2"), { country: "Sri Lanka", age: "57 years old", experience: "1 month in kuwait", languages: "Arabic/English", skills: "With experience in lebanon oman,dubai; Cleaning/ironing/washing", imageUrl: "https://imgur.com/LKyJDsj.jpg", timestamp: Date.now() });
-        // NEPAL
-        await setDoc(doc(db, "candidates", "NEPAL1"), { country: "Nepal", age: "30 years old", experience: "3 months in kuwait", languages: "Arabic", skills: "Cleaning; Babysitter", imageUrl: "https://i.imgur.com/lqsMEmG.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL2"), { country: "Nepal", age: "37 years old", experience: "20 days in kuwait", languages: "No arabic no English", skills: "Cleaning; Baby sitter; Ironing", imageUrl: "https://i.imgur.com/6POnjb7.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL3"), { country: "Nepal", age: "23 years old", experience: "6 months in kuwait", languages: "Arabic", skills: "Cleaning; Cook; Babysitter", imageUrl: "https://i.imgur.com/YN5PNec.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL4"), { country: "Nepal", age: "46 years old", experience: "20 days in kuwait", languages: "No arabic no English", skills: "Cleaning; Baby sitter", imageUrl: "https://imgur.com/3MZgKOn.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL5"), { country: "Nepal", age: "31 years old", experience: "1 month in kuwait", languages: "No arabic no English", skills: "Cleaning; Babysitter", imageUrl: "https://imgur.com/RGVDWyv.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL6"), { country: "Nepal", age: "29 years old", experience: "4 days in kuwait; 2 yrs before kuwait", languages: "", skills: "Cook; Cleaning; Babysitter (Marwa)", imageUrl: "https://imgur.com/YXiDV7A.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL7"), { country: "Nepal", age: "36 years old", experience: "4 days in kuwait; With experience in Saudi", languages: "Arabic", skills: "Cleaning; Cooking; Ironing; Babysitter (Marwa)", imageUrl: "https://imgur.com/r38bnvQ.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL8"), { country: "Nepal", age: "39 years old", experience: "5 months in kuwait", languages: "Arabic", skills: "Cook; Cleaning; Baby sitter", imageUrl: "https://imgur.com/frcZXWG.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL9"), { country: "Nepal", age: "40 years old", experience: "2 months in kuwait", languages: "Arabic", skills: "Cleaning/ironing/washing", imageUrl: "https://imgur.com/UB8jMUZ.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL10"), { country: "Nepal", age: "40 years old", experience: "1 month in kuwait", languages: "No arabic no English", skills: "Cleaning; Baby sitter", imageUrl: "https://imgur.com/uIYAt6u.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL11"), { country: "Nepal", age: "25 years old", experience: "4 months in kuwait", languages: "Arabic/English", skills: "Know to cook; She loves work (Marwa)", imageUrl: "https://imgur.com/yvG7PDk.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL12"), { country: "Nepal", age: "27 years old", experience: "2 months in kuwait", languages: "Arabic", skills: "Cleaning/babysitter/ironing; Secretary: Nazim in farwaniya", imageUrl: "https://imgur.com/t9c8cLX.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "NEPAL13"), { country: "Nepal", age: "46 years old", experience: "2 months in kuwait", languages: "No arabic", skills: "Cleaning/babysitter; Ironing/washing", imageUrl: "https://imgur.com/JU01aeX.jpg", timestamp: Date.now() });
-        // INDIA
-        await setDoc(doc(db, "candidates", "INDIA1"), { country: "India", age: "29 years old", experience: "4 months in kuwait", languages: "Arabic", skills: "Cleaning; Babysitter", imageUrl: "https://imgur.com/pJdIWbP.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "INDIA2"), { country: "India", age: "48 years old", experience: "2 months in kuwait", languages: "No arabic/ no English", skills: "Cleaning; Babysitter", imageUrl: "https://imgur.com/e8ydY62.jpg", timestamp: Date.now() });
-        await setDoc(doc(db, "candidates", "INDIA3"), { country: "India", age: "30 years old", experience: "2 months in kuwait", languages: "With experience; English", skills: "Babysitter/cleaning", imageUrl: "https://imgur.com/fWYVcsh.jpg", timestamp: Date.now() });
+        // Preload sample candidates here...
       }
     }
-    // To initialize candidates, run: initializeCandidates();
     */
     // On DOM Content Loaded: ensure admin exists and show the login screen.
     document.addEventListener("DOMContentLoaded", async () => {
