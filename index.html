@@ -199,7 +199,6 @@
       <p id="login-error" style="color: red;"></p>
     </form>
   </div>
-
   <!-- Home Page -->
   <div id="home" style="display: none;">
     <h1>Welcome to Our Candidate Reservation Site</h1>
@@ -208,7 +207,7 @@
       <button id="change-password-button" onclick="showChangePasswordPanel()">Change Password</button>
       <button id="logout-button" onclick="logout()">Logout</button>
     </div>
-    <!-- Section Circles (Country Sections + Management) -->
+    <!-- Section Circles (Country Sections + Management + Reserved) -->
     <div id="section-circles">
       <!-- Country Sections -->
       <div class="section-item" onclick="openSection('section1')">
@@ -240,9 +239,13 @@
         <div class="section-circle" style="background-color: #17a2b8;">CM</div>
         <div class="section-label">Candidate Management</div>
       </div>
+      <!-- Reserved Candidates Circle -->
+      <div class="section-item" onclick="openReservedSection()">
+        <div class="section-circle" style="background-color: #9c27b0;">RES</div>
+        <div class="section-label">Reserved</div>
+      </div>
     </div>
   </div>
-
   <!-- Candidate Sections (Dynamically Loaded by Country) -->
   <!-- Section 1: Sri Lanka Candidates -->
   <div id="section1" class="section">
@@ -274,7 +277,12 @@
     <h2>Philippines Candidates</h2>
     <div id="candidates-philippines"><p>No candidates available in this section.</p></div>
   </div>
-
+  <!-- Reserved Candidates Section (Independent) -->
+  <div id="reserved-section-div" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>Reserved Candidates</h2>
+    <div id="reserved-candidates-container"></div>
+  </div>
   <!-- Admin Panel (User Management) -->
   <div id="admin-panel" style="display:none;">
     <h2>Admin Panel - Manage Users</h2>
@@ -299,7 +307,6 @@
     <div id="users-list"></div>
     <button onclick="hideAdminPanel()">Close Admin Panel</button>
   </div>
-
   <!-- Change Password Panel (for all logged in users) -->
   <div id="change-password-panel" style="display:none;">
     <h2>Change Your Password</h2>
@@ -316,22 +323,21 @@
     </form>
     <button onclick="hideChangePasswordPanel()">Close</button>
   </div>
-
   <!-- Candidate Management Panel -->
   <div id="candidate-panel" style="display:none;">
     <h2>Manage Candidates</h2>
     <form id="add-candidate-form">
       <label for="candidate-country">Country:</label>
       <select id="candidate-country" required>
-         <option value="Sri Lanka">Sri Lanka</option>
-         <option value="Nepal">Nepal</option>
-         <option value="India">India</option>
-         <option value="Africa">Africa</option>
-         <option value="Philippines">Philippines</option>
+        <option value="Sri Lanka">Sri Lanka</option>
+        <option value="Nepal">Nepal</option>
+        <option value="India">India</option>
+        <option value="Africa">Africa</option>
+        <option value="Philippines">Philippines</option>
       </select>
       <label for="candidate-age">Age:</label>
       <input type="text" id="candidate-age" required/>
-      <label for="candidate-experience">Experience & Details:</label>
+      <label for="candidate-experience">Experience &amp; Details:</label>
       <input type="text" id="candidate-experience" required/>
       <label for="candidate-languages">Languages:</label>
       <input type="text" id="candidate-languages" required/>
@@ -348,7 +354,6 @@
     <div id="candidates-list"></div>
     <button onclick="hideCandidatePanel()">Close Panel</button>
   </div>
-
   <!-- Firebase & Navigation Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
@@ -366,7 +371,6 @@
       where
     } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
-
     // Firebase configuration details
     const firebaseConfig = {
       apiKey: "AIzaSyBa2i6Dv-Wi5KAUe91DeNL5U9L--HZkni0",
@@ -380,10 +384,8 @@
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
-
     // Global variable to store current user details
     window.currentUser = null;
-
     // Ensure default administrator exists on load
     async function ensureAdminExists() {
       const adminRef = doc(db, "users", "Andrew");
@@ -392,7 +394,6 @@
         await setDoc(adminRef, { username: "Andrew", role: "administrator", password: "ROBENHOOD" });
       }
     }
-
     // Login functionality – using Firestore users collection
     document.getElementById("login-form").addEventListener("submit", async function(event) {
       event.preventDefault();
@@ -428,7 +429,6 @@
         document.getElementById("candidate-management-section").style.display = "none";
       }
     });
-
     // Logout functionality
     window.logout = function() {
       window.currentUser = null;
@@ -438,14 +438,12 @@
       document.getElementById("change-password-panel").style.display = "none";
       document.getElementById("candidate-panel").style.display = "none";
     };
-
     // Navigation Functions
     window.goHome = function() {
       const sections = document.getElementsByClassName('section');
       for (let sec of sections) { sec.style.display = 'none'; }
       document.getElementById('home').style.display = 'block';
     };
-
     window.openSection = function(sectionId) {
       document.getElementById('home').style.display = 'none';
       const sections = document.getElementsByClassName('section');
@@ -464,7 +462,14 @@
         loadCandidatesForSection("Philippines", "candidates-philippines");
       }
     };
-
+    // Open Reserved Candidates Section
+    window.openReservedSection = function() {
+      document.getElementById('home').style.display = 'none';
+      const sections = document.getElementsByClassName('section');
+      for (let sec of sections) { sec.style.display = 'none'; }
+      document.getElementById("reserved-section-div").style.display = "block";
+      loadReservedCandidates();
+    };
     // Load candidates for a given country into a container.
     async function loadCandidatesForSection(country, containerId) {
       const container = document.getElementById(containerId);
@@ -475,7 +480,7 @@
         // Load reservation status for each candidate
         const resSnapshot = await getDocs(collection(db, "reservations"));
         const reservedMap = {};
-        resSnapshot.forEach(resDoc => { reservedMap[resDoc.id] = resDoc.data().reserved; });
+        resSnapshot.forEach(resDoc => { reservedMap[resDoc.id] = resDoc.data(); });
         if (querySnapshot.empty) {
           container.innerHTML = "<p>No candidates available in this section.</p>";
           return;
@@ -483,6 +488,8 @@
         querySnapshot.forEach(docSnap => {
           const candidate = docSnap.data();
           const candidateId = docSnap.id;
+          // If candidate already reserved, skip rendering in country section.
+          if (reservedMap[candidateId]) return;
           const card = document.createElement('div');
           card.className = 'item-card';
           card.innerHTML = `
@@ -494,19 +501,11 @@
               <strong>Skills:</strong> ${candidate.skills}
             </p>
           `;
-          // Reservation feature: if reserved, show red "[Reserved]" text; otherwise, a Reserve button.
-          if (reservedMap[candidateId]) {
-            const reservedText = document.createElement('p');
-            reservedText.style.color = "red";
-            reservedText.innerText = "[Reserved]";
-            card.appendChild(reservedText);
-          } else {
-            const reserveBtn = document.createElement("button");
-            reserveBtn.innerText = "Reserve";
-            reserveBtn.className = "reserve-button";
-            reserveBtn.onclick = function() { reserveCandidate(candidateId, country, containerId); };
-            card.appendChild(reserveBtn);
-          }
+          const reserveBtn = document.createElement("button");
+          reserveBtn.innerText = "Reserve";
+          reserveBtn.className = "reserve-button";
+          reserveBtn.onclick = function() { reserveCandidate(candidateId, country, containerId); };
+          card.appendChild(reserveBtn);
           // If authorized, add a red Delete button (for administrators/maid managers)
           if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
             const deleteBtn = document.createElement("button");
@@ -526,18 +525,89 @@
         console.error("Error loading candidates for section:", err);
       }
     }
-
     // Reserve a candidate by creating/updating a document in the "reservations" collection.
     async function reserveCandidate(candidateId, country, containerId) {
       try {
-        await setDoc(doc(db, "reservations", candidateId), { reserved: true });
+        await setDoc(doc(db, "reservations", candidateId), { reserved: true, reservedBy: window.currentUser.username });
         loadCandidatesForSection(country, containerId);
       } catch (err) {
         console.error("Error reserving candidate:", err);
         alert("Error reserving candidate.");
       }
     }
-
+    // New function: Load reserved candidates.
+    async function loadReservedCandidates() {
+      const container = document.getElementById("reserved-candidates-container");
+      container.innerHTML = "";
+      try {
+        const resSnapshot = await getDocs(collection(db, "reservations"));
+        let reservedList = [];
+        resSnapshot.forEach(docSnap => {
+          const resData = docSnap.data();
+          // For non-admins, only include if reservedBy matches current user.
+          if (window.currentUser.role !== "administrator") {
+            if (resData.reservedBy === window.currentUser.username) {
+              reservedList.push({ candidateId: docSnap.id, ...resData });
+            }
+          } else {
+            reservedList.push({ candidateId: docSnap.id, ...resData });
+          }
+        });
+        if (reservedList.length === 0) {
+          container.innerHTML = "<p>No reserved candidates available.</p>";
+          return;
+        }
+        // For each reserved candidate, fetch candidate details.
+        for (const reservation of reservedList) {
+          const candidateDoc = await getDoc(doc(db, "candidates", reservation.candidateId));
+          if (candidateDoc.exists()) {
+            const candidate = candidateDoc.data();
+            const card = document.createElement('div');
+            card.className = 'item-card';
+            let extraInfo = "";
+            if (window.currentUser.role === "administrator") {
+              extraInfo = `<em>Reserved by: ${reservation.reservedBy}</em><br>`;
+            }
+            card.innerHTML = `
+              <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image">
+              <p>
+                <strong>Age:</strong> ${candidate.age}<br>
+                <strong>Experience:</strong> ${candidate.experience}<br>
+                <strong>Languages:</strong> ${candidate.languages}<br>
+                <strong>Skills:</strong> ${candidate.skills}<br>
+                ${extraInfo}
+              </p>
+            `;
+            // Add a Cancel Reservation button if the reservation belongs to the current user (or user is admin)
+            if(window.currentUser.role === "administrator" || reservation.reservedBy === window.currentUser.username){
+              const cancelReserveBtn = document.createElement("button");
+              cancelReserveBtn.innerText = "Cancel Reservation";
+              cancelReserveBtn.className = "reserve-button";
+              cancelReserveBtn.style.backgroundColor = "#f44336";
+              cancelReserveBtn.onclick = function() { cancelReservation(reservation.candidateId, null, "reserved-candidates-container", true); };
+              card.appendChild(cancelReserveBtn);
+            }
+            container.appendChild(card);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading reserved candidates:", err);
+      }
+    }
+    // Cancel a reservation – optionally reloading the reserved candidates section if in reserved mode.
+    async function cancelReservation(candidateId, country, containerId, reservedMode = false) {
+      try {
+        await deleteDoc(doc(db, "reservations", candidateId));
+        if (reservedMode) {
+          loadReservedCandidates();
+        } else {
+          loadCandidatesForSection(country, containerId);
+        }
+      } catch (err) {
+        console.error("Error cancelling reservation:", err);
+        alert("Error cancelling reservation.");
+      }
+    }
     // Delete candidate: remove the candidate document (and associated reservation), then reload the section.
     window.deleteCandidate = async function(candidateId, containerId, country) {
       if (confirm("Are you sure you want to delete this candidate?")) {
@@ -551,7 +621,6 @@
         }
       }
     };
-
     // -------------------------
     // Admin Panel Functionality (User Management)
     // -------------------------
@@ -559,11 +628,9 @@
       document.getElementById("admin-panel").style.display = "block";
       loadUsersList();
     };
-
     window.hideAdminPanel = function() {
       document.getElementById("admin-panel").style.display = "none";
     };
-
     // Add User Form
     document.getElementById("add-user-form").addEventListener("submit", async function(event) {
       event.preventDefault();
@@ -592,7 +659,6 @@
         console.error("Error:", error);
       }
     });
-
     // Load and display users for management.
     async function loadUsersList() {
       const usersListDiv = document.getElementById("users-list");
@@ -627,12 +693,10 @@
         console.error("Error loading users:", error);
       }
     }
-
     window.toggleChangePasswordForm = function(username) {
       const formDiv = document.getElementById("change-form-" + username);
       formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
     };
-
     window.toggleEditRoleForm = function(username, currentRole) {
       const formDiv = document.getElementById("edit-form-" + username);
       if (formDiv.style.display === "none" || formDiv.style.display === "") {
@@ -642,7 +706,6 @@
         formDiv.style.display = "none";
       }
     };
-
     window.updateUserPassword = async function(username) {
       const newPassInput = document.getElementById("new-pass-" + username);
       const newPassword = newPassInput.value;
@@ -662,7 +725,6 @@
         console.error("Error:", error);
       }
     };
-
     window.updateUserRole = async function(username) {
       const newRole = document.getElementById("edit-role-" + username).value;
       const resultSpan = document.getElementById("update-role-result-" + username);
@@ -678,7 +740,6 @@
         console.error("Error:", error);
       }
     };
-
     window.deleteUser = async function(username) {
       if (confirm("Are you sure you want to delete this user?")) {
         try {
@@ -689,18 +750,15 @@
         }
       }
     };
-
     // -----------------------------
     // Change Password (Self-Service)
     // -----------------------------
     window.showChangePasswordPanel = function() {
       document.getElementById("change-password-panel").style.display = "block";
     };
-
     window.hideChangePasswordPanel = function() {
       document.getElementById("change-password-panel").style.display = "none";
     };
-
     document.getElementById("change-password-form").addEventListener("submit", async function(event) {
       event.preventDefault();
       const currentPass = document.getElementById("current-password").value;
@@ -733,7 +791,6 @@
         console.error("Error:", error);
       }
     });
-
     // -----------------------------
     // Candidate Management Panel (Adding Candidates)
     // -----------------------------
@@ -741,11 +798,9 @@
       document.getElementById("candidate-panel").style.display = "block";
       loadAllCandidates();
     };
-
     window.hideCandidatePanel = function() {
       document.getElementById("candidate-panel").style.display = "none";
     };
-
     // Upload image to Imgur using the provided Client-ID
     async function uploadImageToImgur(file) {
       const formData = new FormData();
@@ -767,7 +822,6 @@
         throw err;
       }
     }
-
     // Candidate Add Form
     document.getElementById("add-candidate-form").addEventListener("submit", async function(event) {
       event.preventDefault();
@@ -808,7 +862,6 @@
         console.error(e);
       }
     });
-
     // Load all candidates for the Candidate Management Panel.
     async function loadAllCandidates() {
       const candidatesListDiv = document.getElementById("candidates-list");
@@ -851,9 +904,7 @@
         console.error("Error loading candidates:", err);
       }
     }
-
     /* Optional: Preload candidate data using the following function if your Firestore is empty.
-    
     async function initializeCandidates() {
       const q = await getDocs(collection(db, "candidates"));
       if (q.empty) {
@@ -882,7 +933,6 @@
     }
     // To initialize candidates, run: initializeCandidates();
     */
-
     // On DOM Content Loaded: ensure admin exists and show the login screen.
     document.addEventListener("DOMContentLoaded", async () => {
       await ensureAdminExists();
