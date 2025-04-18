@@ -391,6 +391,7 @@
       where
     } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+    
     // Firebase configuration details
     const firebaseConfig = {
       apiKey: "AIzaSyBa2i6Dv-Wi5KAUe91DeNL5U9L--HZkni0",
@@ -401,11 +402,14 @@
       appId: "1:275915365900:web:b365e63d2da8cbd3691829",
       measurementId: "G-FLSGFE2QYV"
     };
+    
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
+    
     // Global variable to store current user details
     window.currentUser = null;
+    
     // Ensure default administrator exists on load
     async function ensureAdminExists() {
       const adminRef = doc(db, "users", "Andrew");
@@ -414,6 +418,7 @@
         await setDoc(adminRef, { username: "Andrew", role: "administrator", password: "ROBENHOOD" });
       }
     }
+    
     // Login functionality – using Firestore users collection
     document.getElementById("login-form").addEventListener("submit", async function(event) {
       event.preventDefault();
@@ -449,51 +454,58 @@
         document.getElementById("candidate-management-section").style.display = "none";
       }
     });
+    
     // Logout functionality
-    window.logout = function() {
+    function logout() {
       window.currentUser = null;
       document.getElementById("home").style.display = "none";
       document.getElementById("login-div").style.display = "block";
       document.getElementById("admin-section").style.display = "none";
       document.getElementById("change-password-panel").style.display = "none";
       document.getElementById("candidate-section").style.display = "none";
-    };
-    // Navigation Functions
-    window.goHome = function() {
+    }
+    
+    // Navigation functions
+    function goHome() {
       const sections = document.getElementsByClassName('section');
       for (let sec of sections) { sec.style.display = 'none'; }
       document.getElementById('home').style.display = 'block';
-    };
-    window.openSection = function(sectionId) {
+    }
+    
+    function openSection(sectionId) {
       document.getElementById('home').style.display = 'none';
       const sections = document.getElementsByClassName('section');
       for (let sec of sections) { sec.style.display = 'none'; }
       document.getElementById(sectionId).style.display = 'block';
-    };
-    window.openReservedSection = function() {
+    }
+    
+    function openReservedSection() {
       document.getElementById('home').style.display = 'none';
       const sections = document.getElementsByClassName('section');
       for (let sec of sections) { sec.style.display = 'none'; }
       document.getElementById("reserved-section-div").style.display = "block";
       loadReservedCandidates();
-    };
-    // -----------------------------
+    }
+    
     // Candidate Listing and Editing Functions
-    // -----------------------------
     async function loadCandidatesForSection(country, containerId) {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
       try {
         const q = query(collection(db, "candidates"), where("country", "==", country));
         const querySnapshot = await getDocs(q);
+        console.log("Candidates for", country, "=>", querySnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() })));
+        
         // Load reservation status for each candidate
         const resSnapshot = await getDocs(collection(db, "reservations"));
         const reservedMap = {};
         resSnapshot.forEach(resDoc => { reservedMap[resDoc.id] = resDoc.data(); });
+        
         if (querySnapshot.empty) {
           container.innerHTML = "<p>No candidates available in this section.</p>";
           return;
         }
+        
         querySnapshot.forEach(docSnap => {
           const candidate = docSnap.data();
           const candidateId = docSnap.id;
@@ -549,6 +561,7 @@
         console.error("Error loading candidates for section:", err);
       }
     }
+    
     async function loadReservedCandidates() {
       const container = document.getElementById("reserved-candidates-container");
       container.innerHTML = "";
@@ -626,6 +639,7 @@
         console.error("Error loading reserved candidates:", err);
       }
     }
+    
     async function reserveCandidate(candidateId, country, containerId) {
       try {
         await setDoc(doc(db, "reservations", candidateId), { reserved: true, reservedBy: window.currentUser.username });
@@ -635,6 +649,7 @@
         alert("Error reserving candidate.");
       }
     }
+    
     async function cancelReservation(candidateId, country, containerId, reservedMode = false) {
       try {
         await deleteDoc(doc(db, "reservations", candidateId));
@@ -648,25 +663,33 @@
         alert("Error cancelling reservation.");
       }
     }
-    window.deleteCandidate = async function(candidateId, containerId, country) {
+    
+    async function deleteCandidate(candidateId, containerId, country) {
       if (confirm("Are you sure you want to delete this candidate?")) {
         try {
           await deleteDoc(doc(db, "candidates", candidateId));
           await deleteDoc(doc(db, "reservations", candidateId));
-          loadCandidatesForSection(country, containerId);
+          if (containerId && country) {
+            loadCandidatesForSection(country, containerId);
+          } else {
+            loadAllCandidates();
+          }
         } catch (err) {
           console.error("Error deleting candidate:", err);
         }
       }
-    };
-    window.toggleEditForm = function(candidateId) {
+    }
+    
+    function toggleEditForm(candidateId) {
       const formDiv = document.getElementById("edit-form-" + candidateId);
       formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
-    };
-    window.cancelEditCandidate = function(candidateId) {
+    }
+    
+    function cancelEditCandidate(candidateId) {
       document.getElementById("edit-form-" + candidateId).style.display = "none";
-    };
-    window.updateCandidate = async function(candidateId, country, context) {
+    }
+    
+    async function updateCandidate(candidateId, country, context) {
       const updatedAge = document.getElementById(`edit-age-${candidateId}`).value;
       const updatedExp = document.getElementById(`edit-exp-${candidateId}`).value;
       const updatedLang = document.getElementById(`edit-lang-${candidateId}`).value;
@@ -697,11 +720,13 @@
         console.error("Error updating candidate:", err);
         alert("Error updating candidate.");
       }
-    };
+    }
+    
     // -----------------------------
     // Admin Panel (User Management) Functions
     // -----------------------------
-    window.loadUsersList = async function() {
+    
+    async function loadUsersList() {
       const usersListDiv = document.getElementById("users-list");
       usersListDiv.innerHTML = "";
       try {
@@ -733,12 +758,14 @@
       } catch (error) {
         console.error("Error loading users:", error);
       }
-    };
-    window.toggleChangePasswordForm = function(username) {
+    }
+    
+    function toggleChangePasswordForm(username) {
       const formDiv = document.getElementById("change-form-" + username);
       formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
-    };
-    window.toggleEditRoleForm = function(username, currentRole) {
+    }
+    
+    function toggleEditRoleForm(username, currentRole) {
       const formDiv = document.getElementById("edit-form-" + username);
       if (formDiv.style.display === "none" || formDiv.style.display === "") {
         formDiv.style.display = "block";
@@ -746,8 +773,9 @@
       } else {
         formDiv.style.display = "none";
       }
-    };
-    window.updateUserPassword = async function(username) {
+    }
+    
+    async function updateUserPassword(username) {
       const newPassInput = document.getElementById("new-pass-" + username);
       const newPassword = newPassInput.value;
       const resultSpan = document.getElementById("update-result-" + username);
@@ -765,8 +793,9 @@
         resultSpan.innerText = "Error updating.";
         console.error("Error:", error);
       }
-    };
-    window.updateUserRole = async function(username) {
+    }
+    
+    async function updateUserRole(username) {
       const newRole = document.getElementById("edit-role-" + username).value;
       const resultSpan = document.getElementById("update-role-result-" + username);
       try {
@@ -780,8 +809,9 @@
         resultSpan.innerText = "Error updating.";
         console.error("Error:", error);
       }
-    };
-    window.deleteUser = async function(username) {
+    }
+    
+    async function deleteUser(username) {
       if (confirm("Are you sure you want to delete this user?")) {
         try {
           await deleteDoc(doc(db, "users", username));
@@ -790,10 +820,10 @@
           console.error("Error deleting user:", error);
         }
       }
-    };
-
+    }
+    
     // -----------------------------
-    // Add New User Functionality (Updated)
+    // Add New User Functionality
     // -----------------------------
     document.getElementById("add-user-form").addEventListener("submit", async function(event) {
       event.preventDefault();
@@ -802,23 +832,21 @@
       const newPassword = document.getElementById("new-password").value;
       const errorElem = document.getElementById("add-user-error");
       const successElem = document.getElementById("add-user-success");
-
+    
       errorElem.innerText = "";
       successElem.innerText = "";
-
+    
       if (!newUsername || !newPassword) {
         errorElem.innerText = "Username and password are required.";
         return;
       }
       try {
-        // Check if the user already exists in the database
         const userDocRef = doc(db, "users", newUsername);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           errorElem.innerText = "User already exists.";
           return;
         }
-        // Create the new user with the specified details
         await setDoc(userDocRef, {
           username: newUsername,
           role: newRole,
@@ -833,16 +861,18 @@
         errorElem.innerText = "Error adding user. Please try again.";
       }
     });
-
+    
     // -----------------------------
     // Change Password (Self-Service)
     // -----------------------------
-    window.showChangePasswordPanel = function() {
+    function showChangePasswordPanel() {
       document.getElementById("change-password-panel").style.display = "block";
-    };
-    window.hideChangePasswordPanel = function() {
+    }
+    
+    function hideChangePasswordPanel() {
       document.getElementById("change-password-panel").style.display = "none";
-    };
+    }
+    
     document.getElementById("change-password-form").addEventListener("submit", async function(event) {
       event.preventDefault();
       const currentPass = document.getElementById("current-password").value;
@@ -875,6 +905,7 @@
         console.error("Error:", error);
       }
     });
+    
     // -----------------------------
     // Candidate Management Panel (Adding Candidates)
     // -----------------------------
@@ -920,11 +951,16 @@
         console.error(e);
       }
     });
+    
     async function loadAllCandidates() {
       const candidatesListDiv = document.getElementById("candidates-list");
       candidatesListDiv.innerHTML = "";
       try {
         const querySnapshot = await getDocs(collection(db, "candidates"));
+        if (querySnapshot.empty) {
+          candidatesListDiv.innerHTML = "<p>No candidates available.</p>";
+          return;
+        }
         querySnapshot.forEach(docSnap => {
           const candidate = docSnap.data();
           const candidateId = docSnap.id;
@@ -975,6 +1011,7 @@
         console.error("Error loading candidates:", err);
       }
     }
+    
     // Image Upload Function (to Imgur)
     async function uploadImageToImgur(file) {
       const formData = new FormData();
@@ -996,12 +1033,37 @@
         throw err;
       }
     }
+    
     // On DOM Content Loaded: ensure admin exists and show the login screen.
     document.addEventListener("DOMContentLoaded", async () => {
       await ensureAdminExists();
       document.getElementById("login-div").style.display = "block";
       document.getElementById("home").style.display = "none";
     });
+    
+    // -----------------------------
+    // Attach functions to window for inline event handlers
+    // -----------------------------
+    window.loadCandidatesForSection = loadCandidatesForSection;
+    window.reserveCandidate = reserveCandidate;
+    window.deleteCandidate = deleteCandidate;
+    window.toggleEditForm = toggleEditForm;
+    window.cancelEditCandidate = cancelEditCandidate;
+    window.updateCandidate = updateCandidate;
+    window.loadReservedCandidates = loadReservedCandidates;
+    window.loadUsersList = loadUsersList;
+    window.toggleChangePasswordForm = toggleChangePasswordForm;
+    window.toggleEditRoleForm = toggleEditRoleForm;
+    window.updateUserPassword = updateUserPassword;
+    window.updateUserRole = updateUserRole;
+    window.deleteUser = deleteUser;
+    window.logout = logout;
+    window.goHome = goHome;
+    window.openSection = openSection;
+    window.openReservedSection = openReservedSection;
+    window.showChangePasswordPanel = showChangePasswordPanel;
+    window.hideChangePasswordPanel = hideChangePasswordPanel;
+    
   </script>
 </body>
 </html>
