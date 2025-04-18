@@ -175,7 +175,7 @@
       to { opacity: 1; }
     }
     /* Panels: Modified Admin and Candidate Sections styled as separate sections */
-    #admin-section, 
+    #admin-section,
     #candidate-section {
       background: #fff;
       padding: 30px;
@@ -217,7 +217,6 @@
       <p id="login-error" style="color: red;"></p>
     </form>
   </div>
-  
   <!-- Home Page -->
   <div id="home" style="display: none;">
     <h1>Welcome to Our Candidate Reservation Site</h1>
@@ -265,7 +264,6 @@
       </div>
     </div>
   </div>
-  
   <!-- Candidate Sections (Dynamically Loaded by Country) -->
   <!-- Section 1: Sri Lanka Candidates -->
   <div id="section1" class="section">
@@ -303,7 +301,6 @@
     <h2>Reserved Candidates</h2>
     <div id="reserved-candidates-container"></div>
   </div>
-  
   <!-- Admin Section (User Management) -->
   <div id="admin-section" class="section">
     <div class="back-button" onclick="goHome()">← Back</div>
@@ -328,7 +325,6 @@
     <h3>Existing Users</h3>
     <div id="users-list"></div>
   </div>
-  
   <!-- Candidate Management Section -->
   <div id="candidate-section" class="section">
     <div class="back-button" onclick="goHome()">← Back</div>
@@ -362,7 +358,6 @@
     <h3>Existing Candidates (All)</h3>
     <div id="candidates-list"></div>
   </div>
-  
   <!-- Change Password Panel (for all logged in users) -->
   <div id="change-password-panel" class="section">
     <h2>Change Your Password</h2>
@@ -379,7 +374,6 @@
     </form>
     <button onclick="hideChangePasswordPanel()" class="btn" style="margin-top: 10px;">Close</button>
   </div>
-  
   <!-- Firebase & Navigation Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
@@ -717,23 +711,23 @@
           const userDiv = document.createElement("div");
           userDiv.className = "user-entry";
           userDiv.innerHTML = `<strong>${user.username}</strong> (${user.role})
-          <button class="small-btn" onclick="toggleChangePasswordForm('${user.username}')">Change Password</button>
-          <button class="small-btn" onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
-          <button class="small-btn red" onclick="deleteUser('${user.username}')">Delete User</button>
-          <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
-            <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
-            <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
-            <span id="update-result-${user.username}"></span>
-          </div>
-          <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
-            <select id="edit-role-${user.username}">
-              <option value="administrator">Administrator</option>
-              <option value="maidmanager">Maid Manager</option>
-              <option value="marketer">Marketer</option>
-            </select>
-            <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
-            <span id="update-role-result-${user.username}"></span>
-          </div>`;
+            <button class="small-btn" onclick="toggleChangePasswordForm('${user.username}')">Change Password</button>
+            <button class="small-btn" onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
+            <button class="small-btn red" onclick="deleteUser('${user.username}')">Delete User</button>
+            <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
+              <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
+              <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
+              <span id="update-result-${user.username}"></span>
+            </div>
+            <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
+              <select id="edit-role-${user.username}">
+                <option value="administrator">Administrator</option>
+                <option value="maidmanager">Maid Manager</option>
+                <option value="marketer">Marketer</option>
+              </select>
+              <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
+              <span id="update-role-result-${user.username}"></span>
+            </div>`;
           usersListDiv.appendChild(userDiv);
         });
       } catch (error) {
@@ -797,6 +791,49 @@
         }
       }
     };
+
+    // -----------------------------
+    // Add New User Functionality (Updated)
+    // -----------------------------
+    document.getElementById("add-user-form").addEventListener("submit", async function(event) {
+      event.preventDefault();
+      const newUsername = document.getElementById("new-username").value.trim();
+      const newRole = document.getElementById("new-role").value;
+      const newPassword = document.getElementById("new-password").value;
+      const errorElem = document.getElementById("add-user-error");
+      const successElem = document.getElementById("add-user-success");
+
+      errorElem.innerText = "";
+      successElem.innerText = "";
+
+      if (!newUsername || !newPassword) {
+        errorElem.innerText = "Username and password are required.";
+        return;
+      }
+      try {
+        // Check if the user already exists in the database
+        const userDocRef = doc(db, "users", newUsername);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          errorElem.innerText = "User already exists.";
+          return;
+        }
+        // Create the new user with the specified details
+        await setDoc(userDocRef, {
+          username: newUsername,
+          role: newRole,
+          password: newPassword
+        });
+        successElem.innerText = "User added successfully!";
+        document.getElementById("new-username").value = "";
+        document.getElementById("new-password").value = "";
+        loadUsersList();
+      } catch (error) {
+        console.error("Error adding user:", error);
+        errorElem.innerText = "Error adding user. Please try again.";
+      }
+    });
+
     // -----------------------------
     // Change Password (Self-Service)
     // -----------------------------
