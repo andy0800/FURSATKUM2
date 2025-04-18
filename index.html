@@ -19,6 +19,40 @@
     h1, h2, h3 {
       margin: 20px 0;
     }
+    /* Button Styles */
+    .btn {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-family: 'Roboto', sans-serif;
+    }
+    .btn:hover {
+      background: #45a049;
+    }
+    .small-btn {
+      padding: 5px 10px;
+      font-size: 14px;
+      margin-left: 5px;
+      background: #2196F3;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-family: 'Roboto', sans-serif;
+    }
+    .small-btn.red {
+      background: #f44336;
+    }
+    .small-btn:hover {
+      opacity: 0.9;
+    }
     /* Login Form Styles */
     #login-div {
       margin: 50px auto;
@@ -140,8 +174,9 @@
       from { opacity: 0; }
       to { opacity: 1; }
     }
-    /* Panels: Admin Panel, Change Password, Candidate Management Panel */
-    #admin-panel, #change-password-panel, #candidate-panel {
+    /* Panels: Modified Admin and Candidate Sections styled as separate sections */
+    #admin-section, 
+    #candidate-section {
       background: #fff;
       padding: 30px;
       margin: 20px auto;
@@ -152,31 +187,14 @@
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    #admin-panel form input,
-    #change-password-panel form input,
-    #admin-panel form select,
-    #candidate-panel form input,
-    #candidate-panel form select {
+    #admin-section form input,
+    #admin-section form select,
+    #candidate-section form input,
+    #candidate-section form select {
       width: 100%;
       padding: 8px;
       margin: 5px 0 10px;
       box-sizing: border-box;
-    }
-    #admin-panel form button,
-    #change-password-panel form button,
-    #candidate-panel form button {
-      padding: 8px 12px;
-      cursor: pointer;
-    }
-    .user-entry {
-      padding: 5px;
-      border-bottom: 1px dashed #ccc;
-      margin-bottom: 5px;
-    }
-    .user-entry button {
-      margin-left: 5px;
-      padding: 4px 8px;
-      font-size: 12px;
     }
   </style>
 </head>
@@ -195,47 +213,48 @@
       <input type="text" id="username" required />
       <label for="password">Password:</label>
       <input type="password" id="password" required />
-      <button type="submit">Login</button>
+      <button type="submit" class="btn">Login</button>
       <p id="login-error" style="color: red;"></p>
     </form>
   </div>
+  
   <!-- Home Page -->
   <div id="home" style="display: none;">
     <h1>Welcome to Our Candidate Reservation Site</h1>
     <!-- User Controls (Change Password & Logout) -->
     <div id="user-controls">
-      <button id="change-password-button" onclick="showChangePasswordPanel()">Change Password</button>
-      <button id="logout-button" onclick="logout()">Logout</button>
+      <button id="change-password-button" onclick="showChangePasswordPanel()" class="btn">Change Password</button>
+      <button id="logout-button" onclick="logout()" class="btn">Logout</button>
     </div>
     <!-- Section Circles (Country Sections + Management + Reserved) -->
     <div id="section-circles">
       <!-- Country Sections -->
-      <div class="section-item" onclick="openSection('section1')">
+      <div class="section-item" onclick="openSection('section1'); loadCandidatesForSection('Sri Lanka', 'candidates-sri-lanka')">
         <div class="section-circle" style="background-image: url('https://flagcdn.com/w320/lk.png');"></div>
         <div class="section-label">Sri Lanka</div>
       </div>
-      <div class="section-item" onclick="openSection('section2')">
+      <div class="section-item" onclick="openSection('section2'); loadCandidatesForSection('Nepal', 'candidates-nepal')">
         <div class="section-circle" style="background-image: url('https://flagcdn.com/w320/np.png');"></div>
         <div class="section-label">Nepal</div>
       </div>
-      <div class="section-item" onclick="openSection('section3')">
+      <div class="section-item" onclick="openSection('section3'); loadCandidatesForSection('India', 'candidates-india')">
         <div class="section-circle" style="background-image: url('https://flagcdn.com/w320/in.png');"></div>
         <div class="section-label">India</div>
       </div>
-      <div class="section-item" onclick="openSection('section4')">
+      <div class="section-item" onclick="openSection('section4'); loadCandidatesForSection('Africa', 'candidates-africa')">
         <div class="section-circle" style="background-image: url('https://flagcdn.com/w320/za.png');"></div>
         <div class="section-label">Africa</div>
       </div>
-      <div class="section-item" onclick="openSection('section5')">
+      <div class="section-item" onclick="openSection('section5'); loadCandidatesForSection('Philippines', 'candidates-philippines')">
         <div class="section-circle" style="background-image: url('https://flagcdn.com/w320/ph.png');"></div>
         <div class="section-label">Philippines</div>
       </div>
       <!-- Management Circles -->
-      <div id="user-management-section" class="section-item" onclick="showAdminPanel()">
+      <div id="user-management-section" class="section-item" onclick="openSection('admin-section'); loadUsersList()">
         <div class="section-circle" style="background-color: #ffc107;">UM</div>
         <div class="section-label">User Management</div>
       </div>
-      <div id="candidate-management-section" class="section-item" onclick="showCandidatePanel()">
+      <div id="candidate-management-section" class="section-item" onclick="openSection('candidate-section'); loadAllCandidates()">
         <div class="section-circle" style="background-color: #17a2b8;">CM</div>
         <div class="section-label">Candidate Management</div>
       </div>
@@ -246,6 +265,7 @@
       </div>
     </div>
   </div>
+  
   <!-- Candidate Sections (Dynamically Loaded by Country) -->
   <!-- Section 1: Sri Lanka Candidates -->
   <div id="section1" class="section">
@@ -283,9 +303,11 @@
     <h2>Reserved Candidates</h2>
     <div id="reserved-candidates-container"></div>
   </div>
-  <!-- Admin Panel (User Management) -->
-  <div id="admin-panel" style="display:none;">
-    <h2>Admin Panel - Manage Users</h2>
+  
+  <!-- Admin Section (User Management) -->
+  <div id="admin-section" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>Admin Panel - User Management</h2>
     <!-- Form to add new user -->
     <form id="add-user-form">
       <label>Username:</label>
@@ -298,34 +320,19 @@
       </select>
       <label>Password:</label>
       <input type="password" id="new-password" required />
-      <button type="submit">Add User</button>
+      <button type="submit" class="btn">Add User</button>
       <p id="add-user-error" style="color: red;"></p>
       <p id="add-user-success" style="color: green;"></p>
     </form>
     <hr/>
     <h3>Existing Users</h3>
     <div id="users-list"></div>
-    <button onclick="hideAdminPanel()">Close Admin Panel</button>
   </div>
-  <!-- Change Password Panel (for all logged in users) -->
-  <div id="change-password-panel" style="display:none;">
-    <h2>Change Your Password</h2>
-    <form id="change-password-form">
-      <label>Current Password:</label>
-      <input type="password" id="current-password" required />
-      <label>New Password:</label>
-      <input type="password" id="new-user-password" required />
-      <label>Confirm New Password:</label>
-      <input type="password" id="confirm-new-password" required />
-      <button type="submit">Update Password</button>
-      <p id="change-password-error" style="color: red;"></p>
-      <p id="change-password-success" style="color: green;"></p>
-    </form>
-    <button onclick="hideChangePasswordPanel()">Close</button>
-  </div>
-  <!-- Candidate Management Panel -->
-  <div id="candidate-panel" style="display:none;">
-    <h2>Manage Candidates</h2>
+  
+  <!-- Candidate Management Section -->
+  <div id="candidate-section" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>Candidate Management</h2>
     <form id="add-candidate-form">
       <label for="candidate-country">Country:</label>
       <select id="candidate-country" required>
@@ -347,15 +354,32 @@
       <input type="text" id="candidate-secretary" required />
       <label for="candidate-image">Candidate Image:</label>
       <input type="file" id="candidate-image" accept="image/*" required />
-      <button type="submit">Add Candidate</button>
+      <button type="submit" class="btn">Add Candidate</button>
       <p id="candidate-add-error" style="color:red;"></p>
       <p id="candidate-add-success" style="color:green;"></p>
     </form>
     <hr/>
     <h3>Existing Candidates (All)</h3>
     <div id="candidates-list"></div>
-    <button onclick="hideCandidatePanel()">Close Panel</button>
   </div>
+  
+  <!-- Change Password Panel (for all logged in users) -->
+  <div id="change-password-panel" class="section">
+    <h2>Change Your Password</h2>
+    <form id="change-password-form">
+      <label>Current Password:</label>
+      <input type="password" id="current-password" required />
+      <label>New Password:</label>
+      <input type="password" id="new-user-password" required />
+      <label>Confirm New Password:</label>
+      <input type="password" id="confirm-new-password" required />
+      <button type="submit" class="btn">Update Password</button>
+      <p id="change-password-error" style="color: red;"></p>
+      <p id="change-password-success" style="color: green;"></p>
+    </form>
+    <button onclick="hideChangePasswordPanel()" class="btn" style="margin-top: 10px;">Close</button>
+  </div>
+  
   <!-- Firebase & Navigation Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
@@ -436,9 +460,9 @@
       window.currentUser = null;
       document.getElementById("home").style.display = "none";
       document.getElementById("login-div").style.display = "block";
-      document.getElementById("admin-panel").style.display = "none";
+      document.getElementById("admin-section").style.display = "none";
       document.getElementById("change-password-panel").style.display = "none";
-      document.getElementById("candidate-panel").style.display = "none";
+      document.getElementById("candidate-section").style.display = "none";
     };
     // Navigation Functions
     window.goHome = function() {
@@ -451,20 +475,7 @@
       const sections = document.getElementsByClassName('section');
       for (let sec of sections) { sec.style.display = 'none'; }
       document.getElementById(sectionId).style.display = 'block';
-      // Load candidates for the appropriate country section
-      if (sectionId === "section1") {
-        loadCandidatesForSection("Sri Lanka", "candidates-sri-lanka");
-      } else if (sectionId === "section2") {
-        loadCandidatesForSection("Nepal", "candidates-nepal");
-      } else if (sectionId === "section3") {
-        loadCandidatesForSection("India", "candidates-india");
-      } else if (sectionId === "section4") {
-        loadCandidatesForSection("Africa", "candidates-africa");
-      } else if (sectionId === "section5") {
-        loadCandidatesForSection("Philippines", "candidates-philippines");
-      }
     };
-    // Open Reserved Candidates Section
     window.openReservedSection = function() {
       document.getElementById('home').style.display = 'none';
       const sections = document.getElementsByClassName('section');
@@ -472,10 +483,9 @@
       document.getElementById("reserved-section-div").style.display = "block";
       loadReservedCandidates();
     };
-    // ----------------------------- 
+    // -----------------------------
     // Candidate Listing and Editing Functions
     // -----------------------------
-    // Load candidates for a given country (only unreserved ones)
     async function loadCandidatesForSection(country, containerId) {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
@@ -517,23 +527,12 @@
           if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
             const deleteBtn = document.createElement("button");
             deleteBtn.innerText = "Delete";
-            deleteBtn.style.backgroundColor = "red";
-            deleteBtn.style.color = "#fff";
-            deleteBtn.style.border = "none";
-            deleteBtn.style.padding = "8px 12px";
-            deleteBtn.style.cursor = "pointer";
-            deleteBtn.style.marginTop = "10px";
+            deleteBtn.className = "small-btn red";
             deleteBtn.onclick = function() { deleteCandidate(candidateId, containerId, country); };
             card.appendChild(deleteBtn);
-            // Edit Button and hidden form for editing candidate info
             const editBtn = document.createElement("button");
             editBtn.innerText = "Edit";
-            editBtn.style.backgroundColor = "#2196F3";
-            editBtn.style.color = "#fff";
-            editBtn.style.border = "none";
-            editBtn.style.padding = "8px 12px";
-            editBtn.style.cursor = "pointer";
-            editBtn.style.marginTop = "10px";
+            editBtn.className = "small-btn";
             editBtn.onclick = function() { toggleEditForm(candidateId); };
             card.appendChild(editBtn);
             const editFormDiv = document.createElement("div");
@@ -545,8 +544,8 @@
               <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
               <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
               <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
-              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')">Save</button>
-              <button onclick="cancelEditCandidate('${candidateId}')">Cancel</button>
+              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')" class="small-btn">Save</button>
+              <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
             `;
             card.appendChild(editFormDiv);
           }
@@ -556,7 +555,6 @@
         console.error("Error loading candidates for section:", err);
       }
     }
-    // Load reserved candidates for Reserved section
     async function loadReservedCandidates() {
       const container = document.getElementById("reserved-candidates-container");
       container.innerHTML = "";
@@ -610,12 +608,7 @@
             if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
               const editBtn = document.createElement("button");
               editBtn.innerText = "Edit";
-              editBtn.style.backgroundColor = "#2196F3";
-              editBtn.style.color = "#fff";
-              editBtn.style.border = "none";
-              editBtn.style.padding = "8px 12px";
-              editBtn.style.cursor = "pointer";
-              editBtn.style.marginTop = "10px";
+              editBtn.className = "small-btn";
               editBtn.onclick = function() { toggleEditForm(candidateId); };
               card.appendChild(editBtn);
               const editFormDiv = document.createElement("div");
@@ -627,8 +620,8 @@
                 <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
                 <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
                 <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
-                <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'reserved')">Save</button>
-                <button onclick="cancelEditCandidate('${candidateId}')">Cancel</button>
+                <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'reserved')" class="small-btn">Save</button>
+                <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
               `;
               card.appendChild(editFormDiv);
             }
@@ -639,7 +632,6 @@
         console.error("Error loading reserved candidates:", err);
       }
     }
-    // Reserve a candidate by adding a document in "reservations"
     async function reserveCandidate(candidateId, country, containerId) {
       try {
         await setDoc(doc(db, "reservations", candidateId), { reserved: true, reservedBy: window.currentUser.username });
@@ -649,7 +641,6 @@
         alert("Error reserving candidate.");
       }
     }
-    // Cancel a reservation
     async function cancelReservation(candidateId, country, containerId, reservedMode = false) {
       try {
         await deleteDoc(doc(db, "reservations", candidateId));
@@ -663,7 +654,6 @@
         alert("Error cancelling reservation.");
       }
     }
-    // Delete candidate & associated reservation
     window.deleteCandidate = async function(candidateId, containerId, country) {
       if (confirm("Are you sure you want to delete this candidate?")) {
         try {
@@ -675,9 +665,6 @@
         }
       }
     };
-    // -----------------------------
-    // Candidate Editing Functions
-    // -----------------------------
     window.toggleEditForm = function(candidateId) {
       const formDiv = document.getElementById("edit-form-" + candidateId);
       formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
@@ -720,41 +707,7 @@
     // -----------------------------
     // Admin Panel (User Management) Functions
     // -----------------------------
-    window.showAdminPanel = function() {
-      document.getElementById("admin-panel").style.display = "block";
-      loadUsersList();
-    };
-    window.hideAdminPanel = function() {
-      document.getElementById("admin-panel").style.display = "none";
-    };
-    document.getElementById("add-user-form").addEventListener("submit", async function(event) {
-      event.preventDefault();
-      const newUsername = document.getElementById("new-username").value.trim();
-      const newRole = document.getElementById("new-role").value;
-      const newPassword = document.getElementById("new-password").value;
-      const addUserError = document.getElementById("add-user-error");
-      const addUserSuccess = document.getElementById("add-user-success");
-      const userRef = doc(db, "users", newUsername);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        addUserError.innerText = "User already exists.";
-        addUserSuccess.innerText = "";
-        return;
-      }
-      try {
-        await setDoc(userRef, { username: newUsername, role: newRole, password: newPassword });
-        addUserSuccess.innerText = "User added successfully.";
-        addUserError.innerText = "";
-        document.getElementById("new-username").value = "";
-        document.getElementById("new-password").value = "";
-        loadUsersList();
-      } catch (error) {
-        addUserError.innerText = "Error adding user.";
-        addUserSuccess.innerText = "";
-        console.error("Error:", error);
-      }
-    });
-    async function loadUsersList() {
+    window.loadUsersList = async function() {
       const usersListDiv = document.getElementById("users-list");
       usersListDiv.innerHTML = "";
       try {
@@ -764,29 +717,29 @@
           const userDiv = document.createElement("div");
           userDiv.className = "user-entry";
           userDiv.innerHTML = `<strong>${user.username}</strong> (${user.role})
-            <button onclick="toggleChangePasswordForm('${user.username}')">Change Password</button>
-            <button onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
-            <button onclick="deleteUser('${user.username}')">Delete User</button>
-            <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
-              <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
-              <button onclick="updateUserPassword('${user.username}')">Update Password</button>
-              <span id="update-result-${user.username}"></span>
-            </div>
-            <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
-              <select id="edit-role-${user.username}">
-                <option value="administrator">Administrator</option>
-                <option value="maidmanager">Maid Manager</option>
-                <option value="marketer">Marketer</option>
-              </select>
-              <button onclick="updateUserRole('${user.username}')">Update Role</button>
-              <span id="update-role-result-${user.username}"></span>
-            </div>`;
+          <button class="small-btn" onclick="toggleChangePasswordForm('${user.username}')">Change Password</button>
+          <button class="small-btn" onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
+          <button class="small-btn red" onclick="deleteUser('${user.username}')">Delete User</button>
+          <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
+            <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
+            <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
+            <span id="update-result-${user.username}"></span>
+          </div>
+          <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
+            <select id="edit-role-${user.username}">
+              <option value="administrator">Administrator</option>
+              <option value="maidmanager">Maid Manager</option>
+              <option value="marketer">Marketer</option>
+            </select>
+            <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
+            <span id="update-role-result-${user.username}"></span>
+          </div>`;
           usersListDiv.appendChild(userDiv);
         });
       } catch (error) {
         console.error("Error loading users:", error);
       }
-    }
+    };
     window.toggleChangePasswordForm = function(username) {
       const formDiv = document.getElementById("change-form-" + username);
       formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
@@ -888,35 +841,6 @@
     // -----------------------------
     // Candidate Management Panel (Adding Candidates)
     // -----------------------------
-    window.showCandidatePanel = function() {
-      document.getElementById("candidate-panel").style.display = "block";
-      loadAllCandidates();
-    };
-    window.hideCandidatePanel = function() {
-      document.getElementById("candidate-panel").style.display = "none";
-    };
-    // Upload image to Imgur using the provided Client-ID
-    async function uploadImageToImgur(file) {
-      const formData = new FormData();
-      formData.append('image', file);
-      try {
-        const response = await fetch('https://api.imgur.com/3/image', {
-          method: 'POST',
-          headers: { Authorization: 'Client-ID 96ba14b0ef97c48' },
-          body: formData
-        });
-        const data = await response.json();
-        if (data.success) {
-          return data.data.link;
-        } else {
-          throw new Error("Imgur upload failed");
-        }
-      } catch (err) {
-        console.error(err);
-        throw err;
-      }
-    }
-    // Candidate Add Form
     document.getElementById("add-candidate-form").addEventListener("submit", async function(event) {
       event.preventDefault();
       const country = document.getElementById("candidate-country").value;
@@ -959,7 +883,6 @@
         console.error(e);
       }
     });
-    // Load all candidates for the Candidate Management Panel
     async function loadAllCandidates() {
       const candidatesListDiv = document.getElementById("candidates-list");
       candidatesListDiv.innerHTML = "";
@@ -984,12 +907,7 @@
           if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
             const delButton = document.createElement("button");
             delButton.innerText = "Delete";
-            delButton.style.backgroundColor = "red";
-            delButton.style.color = "#fff";
-            delButton.style.border = "none";
-            delButton.style.padding = "8px 12px";
-            delButton.style.cursor = "pointer";
-            delButton.style.marginTop = "10px";
+            delButton.className = "small-btn red";
             delButton.onclick = function() {
               deleteCandidate(candidateId);
               loadAllCandidates();
@@ -997,12 +915,7 @@
             candidateDiv.appendChild(delButton);
             const editBtn = document.createElement("button");
             editBtn.innerText = "Edit";
-            editBtn.style.backgroundColor = "#2196F3";
-            editBtn.style.color = "#fff";
-            editBtn.style.border = "none";
-            editBtn.style.padding = "8px 12px";
-            editBtn.style.cursor = "pointer";
-            editBtn.style.marginTop = "10px";
+            editBtn.className = "small-btn";
             editBtn.onclick = function() { toggleEditForm(candidateId); };
             candidateDiv.appendChild(editBtn);
             const editFormDiv = document.createElement("div");
@@ -1014,8 +927,8 @@
               <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
               <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
               <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
-              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')">Save</button>
-              <button onclick="cancelEditCandidate('${candidateId}')">Cancel</button>
+              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')" class="small-btn">Save</button>
+              <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
             `;
             candidateDiv.appendChild(editFormDiv);
           }
@@ -1025,14 +938,27 @@
         console.error("Error loading candidates:", err);
       }
     }
-    /* Optional: Preload candidate data using the following function if your Firestore is empty.
-    async function initializeCandidates() {
-      const q = await getDocs(collection(db, "candidates"));
-      if (q.empty) {
-        // Preload sample candidates here...
+    // Image Upload Function (to Imgur)
+    async function uploadImageToImgur(file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      try {
+        const response = await fetch('https://api.imgur.com/3/image', {
+          method: 'POST',
+          headers: { Authorization: 'Client-ID 96ba14b0ef97c48' },
+          body: formData
+        });
+        const data = await response.json();
+        if (data.success) {
+          return data.data.link;
+        } else {
+          throw new Error("Imgur upload failed");
+        }
+      } catch (err) {
+        console.error(err);
+        throw err;
       }
     }
-    */
     // On DOM Content Loaded: ensure admin exists and show the login screen.
     document.addEventListener("DOMContentLoaded", async () => {
       await ensureAdminExists();
