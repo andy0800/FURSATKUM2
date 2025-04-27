@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Candidate Reservation</title>
-  
   <!-- Google Font for a modern look -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-
   <style>
     /* Global Styles */
     body {
@@ -21,7 +19,6 @@
     h1, h2, h3 {
       margin: 20px 0;
     }
-
     /* Button Styles */
     .btn {
       padding: 10px 20px;
@@ -56,7 +53,6 @@
     .small-btn:hover {
       opacity: 0.9;
     }
-
     /* Login Form Styles */
     #login-div {
       margin: 50px auto;
@@ -73,7 +69,6 @@
       margin: 10px 0;
       box-sizing: border-box;
     }
-
     /* User Controls (Change Password & Logout) */
     #user-controls {
       margin: 10px auto;
@@ -84,7 +79,6 @@
       font-size: 14px;
       cursor: pointer;
     }
-
     /* Home Page - Section Circles */
     #section-circles {
       display: flex;
@@ -122,7 +116,6 @@
       font-size: 18px;
       font-weight: 500;
     }
-    
     /* Sections – hidden by default */
     .section {
       display: none;
@@ -136,7 +129,6 @@
       color: #2196F3;
       text-decoration: underline;
     }
-
     /* Candidate Card Style */
     .item-card {
       background: #fff;
@@ -190,12 +182,10 @@
       background: #ccc;
       cursor: not-allowed;
     }
-    
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
     }
-    
     /* Panels: Modified Admin and Candidate Sections styled as separate sections */
     #admin-section,
     #candidate-section {
@@ -218,7 +208,6 @@
       margin: 5px 0 10px;
       box-sizing: border-box;
     }
-
     /* Modal Preview Styles */
     #media-preview-modal {
       display: none;
@@ -249,6 +238,50 @@
       color: #333;
       cursor: pointer;
     }
+    /* Reservation Modal Styles */
+    #reservation-modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+    #reservation-modal .modal-content {
+      margin: 10% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 500px;
+      background: #fff;
+      border-radius: 8px;
+      position: relative;
+    }
+    #reservation-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+    }
+    /* Reservation Filter Styles */
+    #reservation-filter {
+      margin-bottom: 20px;
+    }
+    #reservation-filter form {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    #reservation-filter input, #reservation-filter select {
+      padding: 5px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -270,7 +303,6 @@
       <p id="login-error" style="color: red;"></p>
     </form>
   </div>
-  
   <!-- Home Page -->
   <div id="home" style="display: none;">
     <h1>Welcome to Our Candidate Reservation Site</h1>
@@ -318,7 +350,6 @@
       </div>
     </div>
   </div>
-  
   <!-- Candidate Sections -->
   <!-- Section 1: Sri Lanka Candidates -->
   <div id="section1" class="section">
@@ -350,14 +381,28 @@
     <h2>Philippines Candidates</h2>
     <div id="candidates-philippines"><p>No candidates available in this section.</p></div>
   </div>
-  
   <!-- Reserved Candidates Section -->
   <div id="reserved-section-div" class="section">
     <div class="back-button" onclick="goHome()">← Back</div>
     <h2>Reserved Candidates</h2>
+    <!-- Reservation Filter Form -->
+    <div id="reservation-filter">
+      <form id="filter-form">
+        <select id="filter-field">
+          <option value="">Select Field</option>
+          <option value="customerName">Name of Customer</option>
+          <option value="customerPhone">Phone Number</option>
+          <option value="secretaryName">Name Secretary</option>
+          <option value="reservationDate">Date</option>
+          <option value="price">Price</option>
+        </select>
+        <input type="text" id="filter-value" placeholder="Search..." />
+        <button type="submit" class="btn">Filter</button>
+        <button type="button" class="btn" onclick="clearFilter()">Clear Filter</button>
+      </form>
+    </div>
     <div id="reserved-candidates-container"></div>
   </div>
-  
   <!-- Admin Section (User Management) -->
   <div id="admin-section" class="section">
     <div class="back-button" onclick="goHome()">← Back</div>
@@ -382,7 +427,6 @@
     <h3>Existing Users</h3>
     <div id="users-list"></div>
   </div>
-  
   <!-- Candidate Management Section -->
   <div id="candidate-section" class="section">
     <div class="back-button" onclick="goHome()">← Back</div>
@@ -408,8 +452,8 @@
       <input type="text" id="candidate-secretary" required />
       <label for="candidate-image">Candidate Image:</label>
       <input type="file" id="candidate-image" accept="image/*" required />
-      <label for="candidate-video">Candidate Video:</label>
-      <input type="file" id="candidate-video" accept="video/*" required />
+      <label for="candidate-video">Candidate Video (Optional):</label>
+      <input type="file" id="candidate-video" accept="video/*" />
       <button type="submit" class="btn">Add Candidate</button>
       <p id="candidate-add-error" style="color:red;"></p>
       <p id="candidate-add-success" style="color:green;"></p>
@@ -418,7 +462,6 @@
     <h3>Existing Candidates (All)</h3>
     <div id="candidates-list"></div>
   </div>
-  
   <!-- Change Password Panel -->
   <div id="change-password-panel" class="section">
     <h2>Change Your Password</h2>
@@ -435,7 +478,6 @@
     </form>
     <button onclick="hideChangePasswordPanel()" class="btn" style="margin-top: 10px;">Close</button>
   </div>
-  
   <!-- Modal Preview for Candidate Media -->
   <div id="media-preview-modal">
     <div class="modal-content">
@@ -443,7 +485,26 @@
       <div id="media-preview-content"></div>
     </div>
   </div>
-  
+  <!-- Reservation Invoice Modal -->
+  <div id="reservation-modal">
+    <div class="modal-content">
+      <span class="close-button" onclick="closeReservationModal()">&times;</span>
+      <form id="reservation-form">
+        <h2>Reservation Details</h2>
+        <label for="customer-name">Name of Customer:</label>
+        <input type="text" id="customer-name" required />
+        <label for="phone-number">Phone Number:</label>
+        <input type="text" id="phone-number" required />
+        <label for="secretary-name">Name Secretary:</label>
+        <input type="text" id="secretary-name" required />
+        <label for="reservation-date">Date:</label>
+        <input type="date" id="reservation-date" required />
+        <label for="price">Price:</label>
+        <input type="number" id="price" required />
+        <button type="submit" class="btn">Submit Reservation</button>
+      </form>
+    </div>
+  </div>
   <!-- Firebase & Navigation Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
@@ -461,7 +522,7 @@
       where
     } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
-    
+
     // Firebase configuration details
     const firebaseConfig = {
       apiKey: "AIzaSyBa2i6Dv-Wi5KAUe91DeNL5U9L--HZkni0",
@@ -472,14 +533,21 @@
       appId: "1:275915365900:web:b365e63d2da8cbd3691829",
       measurementId: "G-FLSGFE2QYV"
     };
-    
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
-    
+
     // Global variable to store current user details
     window.currentUser = null;
-    
+
+    // Global variables for reservation modal
+    let currentReservationCandidateId = null;
+    let currentReservationCountry = "";
+    let currentReservationContainerId = "";
+
+    // Global filter criteria for reserved section
+    let reservationFilter = { field: "", value: "" };
+
     // Ensure default administrator exists on load
     async function ensureAdminExists() {
       const adminRef = doc(db, "users", "Andrew");
@@ -488,8 +556,8 @@
         await setDoc(adminRef, { username: "Andrew", role: "administrator", password: "ROBENHOOD" });
       }
     }
-    
-    // Login functionality – using Firestore users
+
+    // Login functionality – using Firestore users collection
     document.getElementById("login-form").addEventListener("submit", async function(event) {
       event.preventDefault();
       const role = document.getElementById("role").value;
@@ -522,7 +590,7 @@
         document.getElementById("candidate-management-section").style.display = "none";
       }
     });
-    
+
     // Logout functionality
     function logout() {
       window.currentUser = null;
@@ -532,7 +600,7 @@
       document.getElementById("change-password-panel").style.display = "none";
       document.getElementById("candidate-section").style.display = "none";
     }
-    
+
     // Navigation functions
     function goHome() {
       const sections = document.getElementsByClassName('section');
@@ -552,8 +620,48 @@
       document.getElementById("reserved-section-div").style.display = "block";
       loadReservedCandidates();
     }
-    
+
+    // -----------------------------
+    // Reservation Modal Functions
+    // -----------------------------
+    function showReservationForm(candidateId, country, containerId) {
+      currentReservationCandidateId = candidateId;
+      currentReservationCountry = country;
+      currentReservationContainerId = containerId;
+      document.getElementById("reservation-modal").style.display = "block";
+    }
+    function closeReservationModal() {
+      document.getElementById("reservation-modal").style.display = "none";
+      document.getElementById("reservation-form").reset();
+    }
+    document.getElementById("reservation-form").addEventListener("submit", async function(event) {
+      event.preventDefault();
+      const customerName = document.getElementById("customer-name").value;
+      const phoneNumber = document.getElementById("phone-number").value;
+      const secretaryName = document.getElementById("secretary-name").value;
+      const reservationDate = document.getElementById("reservation-date").value;
+      const price = document.getElementById("price").value;
+      try {
+        await setDoc(doc(db, "reservations", currentReservationCandidateId), {
+          reserved: true,
+          reservedBy: window.currentUser.username,
+          customerName,
+          customerPhone: phoneNumber,
+          secretaryName,
+          reservationDate,
+          price
+        });
+        closeReservationModal();
+        loadCandidatesForSection(currentReservationCountry, currentReservationContainerId);
+      } catch (err) {
+        console.error("Error reserving candidate:", err);
+        alert("Error reserving candidate.");
+      }
+    });
+
+    // -----------------------------
     // Candidate Listing and Editing Functions
+    // -----------------------------
     async function loadCandidatesForSection(country, containerId) {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
@@ -588,11 +696,11 @@
               <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
             </p>
           `;
-          // Reserve button and, if authorized, Delete/Edit buttons...
+          // Change reserve button: open the reservation modal for invoice details.
           const reserveBtn = document.createElement("button");
           reserveBtn.innerText = "Reserve";
           reserveBtn.className = "reserve-button";
-          reserveBtn.onclick = function() { reserveCandidate(candidateId, country, containerId); };
+          reserveBtn.onclick = function() { showReservationForm(candidateId, country, containerId); };
           card.appendChild(reserveBtn);
           if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
             const deleteBtn = document.createElement("button");
@@ -625,7 +733,7 @@
         console.error("Error loading candidates for section:", err);
       }
     }
-    
+
     async function loadReservedCandidates() {
       const container = document.getElementById("reserved-candidates-container");
       container.innerHTML = "";
@@ -642,6 +750,13 @@
             reservedList.push({ candidateId: docSnap.id, ...resData });
           }
         });
+        // Apply filter if set
+        if (reservationFilter.field && reservationFilter.value) {
+          reservedList = reservedList.filter(r => {
+            const fieldValue = r[reservationFilter.field] ? r[reservationFilter.field].toString().toLowerCase() : "";
+            return fieldValue.includes(reservationFilter.value.toLowerCase());
+          });
+        }
         if (reservedList.length === 0) {
           container.innerHTML = "<p>No reserved candidates available.</p>";
           return;
@@ -655,9 +770,13 @@
             card.className = 'item-card';
             let extraInfo = "";
             if (window.currentUser.role === "administrator") {
-              extraInfo = `<em>Reserved by: ${reservation.reservedBy}</em><br>`;
+              extraInfo = `<em>Reserved by: ${reservation.reservedBy}</em><br>
+                           <em>Customer Name: ${reservation.customerName}</em><br>
+                           <em>Phone: ${reservation.customerPhone}</em><br>
+                           <em>Secretary: ${reservation.secretaryName}</em><br>
+                           <em>Date: ${reservation.reservationDate}</em><br>
+                           <em>Price: ${reservation.price}</em><br>`;
             }
-            // Build media HTML for reserved candidate:
             const mediaHtml = `
               <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
               ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
@@ -707,17 +826,9 @@
         console.error("Error loading reserved candidates:", err);
       }
     }
-    
     async function reserveCandidate(candidateId, country, containerId) {
-      try {
-        await setDoc(doc(db, "reservations", candidateId), { reserved: true, reservedBy: window.currentUser.username });
-        loadCandidatesForSection(country, containerId);
-      } catch (err) {
-        console.error("Error reserving candidate:", err);
-        alert("Error reserving candidate.");
-      }
+      // No longer used: reservation is now done via the reservation modal.
     }
-    
     async function cancelReservation(candidateId, country, containerId, reservedMode = false) {
       try {
         await deleteDoc(doc(db, "reservations", candidateId));
@@ -731,7 +842,6 @@
         alert("Error cancelling reservation.");
       }
     }
-    
     async function deleteCandidate(candidateId, containerId, country) {
       if (confirm("Are you sure you want to delete this candidate?")) {
         try {
@@ -747,16 +857,13 @@
         }
       }
     }
-    
     function toggleEditForm(candidateId) {
       const formDiv = document.getElementById("edit-form-" + candidateId);
       formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
     }
-    
     function cancelEditCandidate(candidateId) {
       document.getElementById("edit-form-" + candidateId).style.display = "none";
     }
-    
     async function updateCandidate(candidateId, country, context) {
       const updatedAge = document.getElementById(`edit-age-${candidateId}`).value;
       const updatedExp = document.getElementById(`edit-exp-${candidateId}`).value;
@@ -789,7 +896,6 @@
         alert("Error updating candidate.");
       }
     }
-    
     // -----------------------------
     // Admin Panel (User Management) Functions
     // -----------------------------
@@ -803,35 +909,33 @@
           const userDiv = document.createElement("div");
           userDiv.className = "user-entry";
           userDiv.innerHTML = `<strong>${user.username}</strong> (${user.role})
-          <button class="small-btn" onclick="toggleChangePasswordForm('${user.username}')">Change Password</button>
-          <button class="small-btn" onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
-          <button class="small-btn red" onclick="deleteUser('${user.username}')">Delete User</button>
-          <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
-            <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
-            <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
-            <span id="update-result-${user.username}"></span>
-          </div>
-          <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
-            <select id="edit-role-${user.username}">
-              <option value="administrator">Administrator</option>
-              <option value="maidmanager">Maid Manager</option>
-              <option value="marketer">Marketer</option>
-            </select>
-            <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
-            <span id="update-role-result-${user.username}"></span>
-          </div>`;
+            <button class="small-btn" onclick="toggleChangePasswordForm('${user.username}')">Change Password</button>
+            <button class="small-btn" onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
+            <button class="small-btn red" onclick="deleteUser('${user.username}')">Delete User</button>
+            <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
+              <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
+              <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
+              <span id="update-result-${user.username}"></span>
+            </div>
+            <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
+              <select id="edit-role-${user.username}">
+                <option value="administrator">Administrator</option>
+                <option value="maidmanager">Maid Manager</option>
+                <option value="marketer">Marketer</option>
+              </select>
+              <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
+              <span id="update-role-result-${user.username}"></span>
+            </div>`;
           usersListDiv.appendChild(userDiv);
         });
       } catch (error) {
         console.error("Error loading users:", error);
       }
     }
-    
     function toggleChangePasswordForm(username) {
       const formDiv = document.getElementById("change-form-" + username);
       formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
     }
-    
     function toggleEditRoleForm(username, currentRole) {
       const formDiv = document.getElementById("edit-form-" + username);
       if (formDiv.style.display === "none" || formDiv.style.display === "") {
@@ -841,7 +945,6 @@
         formDiv.style.display = "none";
       }
     }
-    
     async function updateUserPassword(username) {
       const newPassInput = document.getElementById("new-pass-" + username);
       const newPassword = newPassInput.value;
@@ -861,7 +964,6 @@
         console.error("Error:", error);
       }
     }
-    
     async function updateUserRole(username) {
       const newRole = document.getElementById("edit-role-" + username).value;
       const resultSpan = document.getElementById("update-role-result-" + username);
@@ -877,7 +979,6 @@
         console.error("Error:", error);
       }
     }
-    
     async function deleteUser(username) {
       if (confirm("Are you sure you want to delete this user?")) {
         try {
@@ -888,7 +989,6 @@
         }
       }
     }
-    
     // -----------------------------
     // Add New User Functionality
     // -----------------------------
@@ -926,7 +1026,6 @@
         errorElem.innerText = "Error adding user. Please try again.";
       }
     });
-    
     // -----------------------------
     // Change Password (Self-Service)
     // -----------------------------
@@ -968,7 +1067,6 @@
         console.error("Error:", error);
       }
     });
-    
     // -----------------------------
     // Candidate Management Panel (Adding Candidates)
     // -----------------------------
@@ -987,12 +1085,15 @@
       errorElem.innerText = "";
       successElem.innerText = "";
       try {
-        if (!imageFile || !videoFile) {
-          errorElem.innerText = "Please select an image and video file.";
+        if (!imageFile) {
+          errorElem.innerText = "Please select an image file.";
           return;
         }
         const imageUrl = await uploadImageToImgur(imageFile);
-        const videoUrl = await uploadVideoToImgur(videoFile);
+        let videoUrl = "";
+        if (videoFile) {
+          videoUrl = await uploadVideoToImgur(videoFile);
+        }
         await addDoc(collection(db, "candidates"), {
           country,
           age,
@@ -1018,7 +1119,6 @@
         console.error(e);
       }
     });
-    
     async function loadAllCandidates() {
       const candidatesListDiv = document.getElementById("candidates-list");
       candidatesListDiv.innerHTML = "";
@@ -1081,7 +1181,6 @@
         console.error("Error loading candidates:", err);
       }
     }
-    
     // Image Upload Function (to Imgur)
     async function uploadImageToImgur(file) {
       const formData = new FormData();
@@ -1103,7 +1202,6 @@
         throw err;
       }
     }
-    
     // Video Upload Function (to Imgur)
     async function uploadVideoToImgur(file) {
       const formData = new FormData();
@@ -1126,7 +1224,6 @@
         throw err;
       }
     }
-    
     // Modal Preview Functions
     function previewMedia(mediaType, mediaUrl) {
       const modal = document.getElementById("media-preview-modal");
@@ -1146,22 +1243,33 @@
       }
       modal.style.display = "block";
     }
-    
     function closeModal() {
       document.getElementById("media-preview-modal").style.display = "none";
       document.getElementById("media-preview-content").innerHTML = "";
     }
-    
+    // Reservation Filter Functions
+    document.getElementById("filter-form").addEventListener("submit", function(event) {
+      event.preventDefault();
+      reservationFilter.field = document.getElementById("filter-field").value;
+      reservationFilter.value = document.getElementById("filter-value").value;
+      loadReservedCandidates();
+    });
+    function clearFilter() {
+      reservationFilter.field = "";
+      reservationFilter.value = "";
+      document.getElementById("filter-field").value = "";
+      document.getElementById("filter-value").value = "";
+      loadReservedCandidates();
+    }
     // On DOM Content Loaded: ensure admin exists and show the login screen.
     document.addEventListener("DOMContentLoaded", async () => {
       await ensureAdminExists();
       document.getElementById("login-div").style.display = "block";
       document.getElementById("home").style.display = "none";
     });
-    
     // Attach functions to window for inline event handlers
     window.loadCandidatesForSection = loadCandidatesForSection;
-    window.reserveCandidate = reserveCandidate;
+    window.reserveCandidate = reserveCandidate; // no longer used directly.
     window.deleteCandidate = deleteCandidate;
     window.toggleEditForm = toggleEditForm;
     window.cancelEditCandidate = cancelEditCandidate;
@@ -1181,6 +1289,8 @@
     window.hideChangePasswordPanel = hideChangePasswordPanel;
     window.previewMedia = previewMedia;
     window.closeModal = closeModal;
+    window.showReservationForm = showReservationForm;
+    window.closeReservationModal = closeReservationModal;
   </script>
 </body>
 </html>
