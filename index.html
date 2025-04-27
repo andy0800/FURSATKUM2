@@ -268,6 +268,20 @@
       color: #333;
       cursor: pointer;
     }
+    /* Reservation Form Vertical Layout */
+    #reservation-form label,
+    #reservation-form input,
+    #reservation-form select,
+    #reservation-form button {
+      display: block;
+      width: 90%;
+      margin: 10px auto;
+      box-sizing: border-box;
+    }
+    #reservation-form label {
+      text-align: left;
+      font-weight: 500;
+    }
     /* Reservation Filter Styles */
     #reservation-filter {
       margin-bottom: 20px;
@@ -522,7 +536,6 @@
       where
     } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
-
     // Firebase configuration details
     const firebaseConfig = {
       apiKey: "AIzaSyBa2i6Dv-Wi5KAUe91DeNL5U9L--HZkni0",
@@ -536,18 +549,14 @@
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
-
     // Global variable to store current user details
     window.currentUser = null;
-
     // Global variables for reservation modal
     let currentReservationCandidateId = null;
     let currentReservationCountry = "";
     let currentReservationContainerId = "";
-
     // Global filter criteria for reserved section
     let reservationFilter = { field: "", value: "" };
-
     // Ensure default administrator exists on load
     async function ensureAdminExists() {
       const adminRef = doc(db, "users", "Andrew");
@@ -556,7 +565,6 @@
         await setDoc(adminRef, { username: "Andrew", role: "administrator", password: "ROBENHOOD" });
       }
     }
-
     // Login functionality – using Firestore users collection
     document.getElementById("login-form").addEventListener("submit", async function(event) {
       event.preventDefault();
@@ -590,7 +598,6 @@
         document.getElementById("candidate-management-section").style.display = "none";
       }
     });
-
     // Logout functionality
     function logout() {
       window.currentUser = null;
@@ -600,7 +607,6 @@
       document.getElementById("change-password-panel").style.display = "none";
       document.getElementById("candidate-section").style.display = "none";
     }
-
     // Navigation functions
     function goHome() {
       const sections = document.getElementsByClassName('section');
@@ -620,7 +626,6 @@
       document.getElementById("reserved-section-div").style.display = "block";
       loadReservedCandidates();
     }
-
     // -----------------------------
     // Reservation Modal Functions
     // -----------------------------
@@ -658,7 +663,6 @@
         alert("Error reserving candidate.");
       }
     });
-
     // -----------------------------
     // Candidate Listing and Editing Functions
     // -----------------------------
@@ -733,7 +737,6 @@
         console.error("Error loading candidates for section:", err);
       }
     }
-
     async function loadReservedCandidates() {
       const container = document.getElementById("reserved-candidates-container");
       container.innerHTML = "";
@@ -771,11 +774,11 @@
             let extraInfo = "";
             if (window.currentUser.role === "administrator") {
               extraInfo = `<em>Reserved by: ${reservation.reservedBy}</em><br>
-                           <em>Customer Name: ${reservation.customerName}</em><br>
-                           <em>Phone: ${reservation.customerPhone}</em><br>
-                           <em>Secretary: ${reservation.secretaryName}</em><br>
-                           <em>Date: ${reservation.reservationDate}</em><br>
-                           <em>Price: ${reservation.price}</em><br>`;
+              <em>Customer Name: ${reservation.customerName}</em><br>
+              <em>Phone: ${reservation.customerPhone}</em><br>
+              <em>Secretary: ${reservation.secretaryName}</em><br>
+              <em>Date: ${reservation.reservationDate}</em><br>
+              <em>Price: ${reservation.price}</em><br>`;
             }
             const mediaHtml = `
               <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
@@ -909,23 +912,23 @@
           const userDiv = document.createElement("div");
           userDiv.className = "user-entry";
           userDiv.innerHTML = `<strong>${user.username}</strong> (${user.role})
-            <button class="small-btn" onclick="toggleChangePasswordForm('${user.username}')">Change Password</button>
-            <button class="small-btn" onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
-            <button class="small-btn red" onclick="deleteUser('${user.username}')">Delete User</button>
-            <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
-              <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
-              <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
-              <span id="update-result-${user.username}"></span>
-            </div>
-            <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
-              <select id="edit-role-${user.username}">
-                <option value="administrator">Administrator</option>
-                <option value="maidmanager">Maid Manager</option>
-                <option value="marketer">Marketer</option>
-              </select>
-              <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
-              <span id="update-role-result-${user.username}"></span>
-            </div>`;
+          <button class="small-btn" onclick="toggleChangePasswordForm('${user.username}')">Change Password</button>
+          <button class="small-btn" onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
+          <button class="small-btn red" onclick="deleteUser('${user.username}')">Delete User</button>
+          <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
+            <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
+            <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
+            <span id="update-result-${user.username}"></span>
+          </div>
+          <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
+            <select id="edit-role-${user.username}">
+              <option value="administrator">Administrator</option>
+              <option value="maidmanager">Maid Manager</option>
+              <option value="marketer">Marketer</option>
+            </select>
+            <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
+            <span id="update-role-result-${user.username}"></span>
+          </div>`;
           usersListDiv.appendChild(userDiv);
         });
       } catch (error) {
