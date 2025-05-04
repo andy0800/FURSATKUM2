@@ -30,7 +30,6 @@
       font-weight: 500;
       cursor: pointer;
       transition: background 0.3s;
-      font-family: 'Roboto', sans-serif;
     }
     .btn:hover {
       background: #45a049;
@@ -45,7 +44,6 @@
       border-radius: 3px;
       cursor: pointer;
       transition: background 0.3s;
-      font-family: 'Roboto', sans-serif;
     }
     .small-btn.red {
       background: #f44336;
@@ -515,6 +513,9 @@
         <input type="date" id="reservation-date" required />
         <label for="price">Price:</label>
         <input type="number" id="price" required />
+        <!-- New Trial Details Field -->
+        <label for="trial-details">Trial Details:</label>
+        <input type="text" id="trial-details" placeholder="[Trial Details]" />
         <button type="submit" class="btn">Submit Reservation</button>
       </form>
     </div>
@@ -536,6 +537,7 @@
       where
     } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+    
     // Firebase configuration details
     const firebaseConfig = {
       apiKey: "AIzaSyBa2i6Dv-Wi5KAUe91DeNL5U9L--HZkni0",
@@ -549,6 +551,7 @@
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
+    
     // Global variable to store current user details
     window.currentUser = null;
     // Global variables for reservation modal
@@ -557,6 +560,7 @@
     let currentReservationContainerId = "";
     // Global filter criteria for reserved section
     let reservationFilter = { field: "", value: "" };
+    
     // Ensure default administrator exists on load
     async function ensureAdminExists() {
       const adminRef = doc(db, "users", "Andrew");
@@ -565,6 +569,7 @@
         await setDoc(adminRef, { username: "Andrew", role: "administrator", password: "ROBENHOOD" });
       }
     }
+    
     // Login functionality – using Firestore users collection
     document.getElementById("login-form").addEventListener("submit", async function(event) {
       event.preventDefault();
@@ -598,6 +603,7 @@
         document.getElementById("candidate-management-section").style.display = "none";
       }
     });
+    
     // Logout functionality
     function logout() {
       window.currentUser = null;
@@ -607,6 +613,7 @@
       document.getElementById("change-password-panel").style.display = "none";
       document.getElementById("candidate-section").style.display = "none";
     }
+    
     // Navigation functions
     function goHome() {
       const sections = document.getElementsByClassName('section');
@@ -626,6 +633,7 @@
       document.getElementById("reserved-section-div").style.display = "block";
       loadReservedCandidates();
     }
+    
     // -----------------------------
     // Reservation Modal Functions
     // -----------------------------
@@ -646,6 +654,9 @@
       const secretaryName = document.getElementById("secretary-name").value;
       const reservationDate = document.getElementById("reservation-date").value;
       const price = document.getElementById("price").value;
+      const trialDetails = document.getElementById("trial-details").value;
+      const reservationTimestamp = Date.now();
+      const expirationTimestamp = reservationTimestamp + 3 * 24 * 60 * 60 * 1000; // 3 days in ms
       try {
         await setDoc(doc(db, "reservations", currentReservationCandidateId), {
           reserved: true,
@@ -654,7 +665,11 @@
           customerPhone: phoneNumber,
           secretaryName,
           reservationDate,
-          price
+          price,
+          trialDetails,
+          reservationTimestamp,
+          expirationTimestamp,
+          transferred: false
         });
         closeReservationModal();
         loadCandidatesForSection(currentReservationCountry, currentReservationContainerId);
@@ -663,6 +678,7 @@
         alert("Error reserving candidate.");
       }
     });
+    
     // -----------------------------
     // Candidate Listing and Editing Functions
     // -----------------------------
@@ -688,19 +704,19 @@
           card.className = 'item-card';
           // Build media HTML: image is always shown; video if available.
           const mediaHtml = `
-            <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
-            ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
+          <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
+          ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
           `;
           card.innerHTML = mediaHtml + `
-            <p>
-              <strong>Age:</strong> ${candidate.age}<br>
-              <strong>Experience:</strong> ${candidate.experience}<br>
-              <strong>Languages:</strong> ${candidate.languages}<br>
-              <strong>Skills:</strong> ${candidate.skills}<br>
-              <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
-            </p>
+          <p>
+          <strong>Age:</strong> ${candidate.age}<br>
+          <strong>Experience:</strong> ${candidate.experience}<br>
+          <strong>Languages:</strong> ${candidate.languages}<br>
+          <strong>Skills:</strong> ${candidate.skills}<br>
+          <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
+          </p>
           `;
-          // Change reserve button: open the reservation modal for invoice details.
+          // Reserve button to open reservation modal
           const reserveBtn = document.createElement("button");
           reserveBtn.innerText = "Reserve";
           reserveBtn.className = "reserve-button";
@@ -721,13 +737,13 @@
             editFormDiv.id = "edit-form-" + candidateId;
             editFormDiv.style.display = "none";
             editFormDiv.innerHTML = `
-              <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
-              <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
-              <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
-              <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
-              <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
-              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')" class="small-btn">Save</button>
-              <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
+            <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
+            <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
+            <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
+            <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
+            <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
+            <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')" class="small-btn">Save</button>
+            <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
             `;
             card.appendChild(editFormDiv);
           }
@@ -737,6 +753,7 @@
         console.error("Error loading candidates for section:", err);
       }
     }
+    
     async function loadReservedCandidates() {
       const container = document.getElementById("reserved-candidates-container");
       container.innerHTML = "";
@@ -778,22 +795,45 @@
               <em>Phone: ${reservation.customerPhone}</em><br>
               <em>Secretary: ${reservation.secretaryName}</em><br>
               <em>Date: ${reservation.reservationDate}</em><br>
-              <em>Price: ${reservation.price}</em><br>`;
+              <em>Price: ${reservation.price}</em><br>
+              <em>Trial Details: ${reservation.trialDetails || ""}</em><br>`;
             }
             const mediaHtml = `
-              <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
-              ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
+            <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
+            ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
             `;
             card.innerHTML = mediaHtml + `
-              <p>
-                <strong>Age:</strong> ${candidate.age}<br>
-                <strong>Experience:</strong> ${candidate.experience}<br>
-                <strong>Languages:</strong> ${candidate.languages}<br>
-                <strong>Skills:</strong> ${candidate.skills}<br>
-                <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}<br>
-                ${extraInfo}
-              </p>
+            <p>
+            <strong>Age:</strong> ${candidate.age}<br>
+            <strong>Experience:</strong> ${candidate.experience}<br>
+            <strong>Languages:</strong> ${candidate.languages}<br>
+            <strong>Skills:</strong> ${candidate.skills}<br>
+            <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}<br>
+            ${extraInfo}
+            </p>
             `;
+            // If reservation not transferred add countdown timer and Transferred button
+            if (!reservation.transferred) {
+              const countdownDiv = document.createElement("div");
+              countdownDiv.id = "countdown-" + candidateId;
+              countdownDiv.style.marginTop = "10px";
+              card.appendChild(countdownDiv);
+              
+              const transferredBtn = document.createElement("button");
+              transferredBtn.innerText = "Transferred";
+              transferredBtn.className = "btn";
+              transferredBtn.style.marginTop = "5px";
+              transferredBtn.onclick = function() { updateReservationTransferred(candidateId); };
+              card.appendChild(transferredBtn);
+              
+              startCountdown(candidateId, reservation.expirationTimestamp, countdownDiv);
+            } else {
+              const transferredLabel = document.createElement("div");
+              transferredLabel.innerText = "Transferred";
+              transferredLabel.style.marginTop = "10px";
+              card.appendChild(transferredLabel);
+            }
+            // Re-add the Cancel Reservation button
             if (window.currentUser.role === "administrator" || reservation.reservedBy === window.currentUser.username) {
               const cancelReserveBtn = document.createElement("button");
               cancelReserveBtn.innerText = "Cancel Reservation";
@@ -802,7 +842,8 @@
               cancelReserveBtn.onclick = function() { cancelReservation(candidateId, null, "reserved-candidates-container", true); };
               card.appendChild(cancelReserveBtn);
             }
-            if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
+            // Allow editing if current user is admin, maidmanager, or the reserver
+            if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager" || reservation.reservedBy === window.currentUser.username)) {
               const editBtn = document.createElement("button");
               editBtn.innerText = "Edit";
               editBtn.className = "small-btn";
@@ -812,13 +853,13 @@
               editFormDiv.id = "edit-form-" + candidateId;
               editFormDiv.style.display = "none";
               editFormDiv.innerHTML = `
-                <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
-                <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
-                <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
-                <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
-                <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
-                <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'reserved')" class="small-btn">Save</button>
-                <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
+              <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
+              <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
+              <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
+              <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
+              <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
+              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'reserved')" class="small-btn">Save</button>
+              <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
               `;
               card.appendChild(editFormDiv);
             }
@@ -829,22 +870,45 @@
         console.error("Error loading reserved candidates:", err);
       }
     }
-    async function reserveCandidate(candidateId, country, containerId) {
-      // No longer used: reservation is now done via the reservation modal.
-    }
-    async function cancelReservation(candidateId, country, containerId, reservedMode = false) {
+    
+    // Function to update 'transferred' status in a reservation
+    async function updateReservationTransferred(candidateId) {
       try {
-        await deleteDoc(doc(db, "reservations", candidateId));
-        if (reservedMode) {
-          loadReservedCandidates();
-        } else {
-          loadCandidatesForSection(country, containerId);
-        }
+        await updateDoc(doc(db, "reservations", candidateId), { transferred: true });
+        loadReservedCandidates();
       } catch (err) {
-        console.error("Error cancelling reservation:", err);
-        alert("Error cancelling reservation.");
+        console.error("Error updating transferred status:", err);
       }
     }
+    
+    // Countdown Timer function
+    function startCountdown(reservationId, expirationTimestamp, displayElement) {
+      function updateCountdown() {
+        const now = Date.now();
+        let diff = expirationTimestamp - now;
+        if (diff <= 0) {
+          clearInterval(intervalId);
+          displayElement.innerText = "Expired";
+          const expiredLabel = document.createElement("div");
+          expiredLabel.innerText = "Countdown expired!";
+          expiredLabel.style.color = "red";
+          displayElement.parentElement.appendChild(expiredLabel);
+        } else {
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          diff -= days * 1000 * 60 * 60 * 24;
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          diff -= hours * 1000 * 60 * 60;
+          const minutes = Math.floor(diff / (1000 * 60));
+          diff -= minutes * 1000 * 60;
+          const seconds = Math.floor(diff / 1000);
+          displayElement.innerText = "Time left: " + days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+        }
+      }
+      updateCountdown();
+      const intervalId = setInterval(updateCountdown, 1000);
+      displayElement.dataset.intervalId = intervalId;
+    }
+    
     async function deleteCandidate(candidateId, containerId, country) {
       if (confirm("Are you sure you want to delete this candidate?")) {
         try {
@@ -899,6 +963,7 @@
         alert("Error updating candidate.");
       }
     }
+    
     // -----------------------------
     // Admin Panel (User Management) Functions
     // -----------------------------
@@ -916,18 +981,18 @@
           <button class="small-btn" onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
           <button class="small-btn red" onclick="deleteUser('${user.username}')">Delete User</button>
           <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
-            <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
-            <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
-            <span id="update-result-${user.username}"></span>
+          <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
+          <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
+          <span id="update-result-${user.username}"></span>
           </div>
           <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
-            <select id="edit-role-${user.username}">
-              <option value="administrator">Administrator</option>
-              <option value="maidmanager">Maid Manager</option>
-              <option value="marketer">Marketer</option>
-            </select>
-            <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
-            <span id="update-role-result-${user.username}"></span>
+          <select id="edit-role-${user.username}">
+          <option value="administrator">Administrator</option>
+          <option value="maidmanager">Maid Manager</option>
+          <option value="marketer">Marketer</option>
+          </select>
+          <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
+          <span id="update-role-result-${user.username}"></span>
           </div>`;
           usersListDiv.appendChild(userDiv);
         });
@@ -1137,18 +1202,18 @@
           const candidateDiv = document.createElement("div");
           candidateDiv.className = "item-card";
           const mediaHtml = `
-            <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
-            ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
+          <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
+          ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
           `;
           candidateDiv.innerHTML = mediaHtml + `
-            <p>
-              <strong>Age:</strong> ${candidate.age}<br>
-              <strong>Country:</strong> ${candidate.country}<br>
-              <strong>Experience:</strong> ${candidate.experience}<br>
-              <strong>Languages:</strong> ${candidate.languages}<br>
-              <strong>Skills:</strong> ${candidate.skills}<br>
-              <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
-            </p>
+          <p>
+          <strong>Age:</strong> ${candidate.age}<br>
+          <strong>Country:</strong> ${candidate.country}<br>
+          <strong>Experience:</strong> ${candidate.experience}<br>
+          <strong>Languages:</strong> ${candidate.languages}<br>
+          <strong>Skills:</strong> ${candidate.skills}<br>
+          <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
+          </p>
           `;
           if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
             const delButton = document.createElement("button");
@@ -1168,13 +1233,13 @@
             editFormDiv.id = "edit-form-" + candidateId;
             editFormDiv.style.display = "none";
             editFormDiv.innerHTML = `
-              <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
-              <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
-              <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
-              <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
-              <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
-              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')" class="small-btn">Save</button>
-              <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
+            <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
+            <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
+            <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
+            <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
+            <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
+            <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')" class="small-btn">Save</button>
+            <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
             `;
             candidateDiv.appendChild(editFormDiv);
           }
@@ -1210,7 +1275,6 @@
       const formData = new FormData();
       formData.append('video', file);
       try {
-        // Note: Imgur supports video uploads on the same endpoint but check your account permissions.
         const response = await fetch('https://api.imgur.com/3/upload', {
           method: 'POST',
           headers: { Authorization: 'Client-ID 96ba14b0ef97c48' },
@@ -1270,9 +1334,8 @@
       document.getElementById("login-div").style.display = "block";
       document.getElementById("home").style.display = "none";
     });
-    // Attach functions to window for inline event handlers
+    // Expose functions to global window object for inline event handlers
     window.loadCandidatesForSection = loadCandidatesForSection;
-    window.reserveCandidate = reserveCandidate; // no longer used directly.
     window.deleteCandidate = deleteCandidate;
     window.toggleEditForm = toggleEditForm;
     window.cancelEditCandidate = cancelEditCandidate;
