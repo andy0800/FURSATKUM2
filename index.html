@@ -537,7 +537,6 @@
       where
     } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
-
     // Firebase configuration details
     const firebaseConfig = {
       apiKey: "AIzaSyBa2i6Dv-Wi5KAUe91DeNL5U9L--HZkni0",
@@ -548,11 +547,9 @@
       appId: "1:275915365900:web:b365e63d2da8cbd3691829",
       measurementId: "G-FLSGFE2QYV"
     };
-
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
-
     // Global variable to store current user details
     window.currentUser = null;
     // Global variables for reservation modal
@@ -561,7 +558,6 @@
     let currentReservationContainerId = "";
     // Global filter criteria for reserved section
     let reservationFilter = { field: "", value: "" };
-
     // Ensure default administrator exists on load
     async function ensureAdminExists() {
       const adminRef = doc(db, "users", "Andrew");
@@ -570,7 +566,6 @@
         await setDoc(adminRef, { username: "Andrew", role: "administrator", password: "ROBENHOOD" });
       }
     }
-
     // Login functionality – using Firestore users collection
     document.getElementById("login-form").addEventListener("submit", async function(event) {
       event.preventDefault();
@@ -604,7 +599,6 @@
         document.getElementById("candidate-management-section").style.display = "none";
       }
     });
-
     // Logout functionality
     function logout() {
       window.currentUser = null;
@@ -614,7 +608,6 @@
       document.getElementById("change-password-panel").style.display = "none";
       document.getElementById("candidate-section").style.display = "none";
     }
-
     // Navigation functions
     function goHome() {
       const sections = document.getElementsByClassName('section');
@@ -634,7 +627,6 @@
       document.getElementById("reserved-section-div").style.display = "block";
       loadReservedCandidates();
     }
-
     // -----------------------------
     // Reservation Modal Functions
     // -----------------------------
@@ -679,7 +671,6 @@
         alert("Error reserving candidate.");
       }
     });
-
     // -----------------------------
     // Candidate Listing and Editing Functions
     // -----------------------------
@@ -710,11 +701,11 @@
           `;
           card.innerHTML = mediaHtml + `
             <p>
-              <strong>Age:</strong> ${candidate.age}<br>
-              <strong>Experience:</strong> ${candidate.experience}<br>
-              <strong>Languages:</strong> ${candidate.languages}<br>
-              <strong>Skills:</strong> ${candidate.skills}<br>
-              <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
+            <strong>Age:</strong> ${candidate.age}<br>
+            <strong>Experience:</strong> ${candidate.experience}<br>
+            <strong>Languages:</strong> ${candidate.languages}<br>
+            <strong>Skills:</strong> ${candidate.skills}<br>
+            <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
             </p>
           `;
           // Reserve button to open reservation modal
@@ -754,7 +745,6 @@
         console.error("Error loading candidates for section:", err);
       }
     }
-
     async function loadReservedCandidates() {
       const container = document.getElementById("reserved-candidates-container");
       container.innerHTML = "";
@@ -792,12 +782,12 @@
             let extraInfo = "";
             if (window.currentUser.role === "administrator") {
               extraInfo = `<em>Reserved by: ${reservation.reservedBy}</em><br>
-                <em>Customer Name: ${reservation.customerName}</em><br>
-                <em>Phone: ${reservation.customerPhone}</em><br>
-                <em>Secretary: ${reservation.secretaryName}</em><br>
-                <em>Date: ${reservation.reservationDate}</em><br>
-                <em>Price: ${reservation.price}</em><br>
-                <em>Trial Details: ${reservation.trialDetails || ""}</em><br>`;
+              <em>Customer Name: ${reservation.customerName}</em><br>
+              <em>Phone: ${reservation.customerPhone}</em><br>
+              <em>Secretary: ${reservation.secretaryName}</em><br>
+              <em>Date: ${reservation.reservationDate}</em><br>
+              <em>Price: ${reservation.price}</em><br>
+              <em>Trial Details: ${reservation.trialDetails || ""}</em><br>`;
             }
             const mediaHtml = `
               <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
@@ -805,31 +795,32 @@
             `;
             card.innerHTML = mediaHtml + `
               <p>
-                <strong>Age:</strong> ${candidate.age}<br>
-                <strong>Experience:</strong> ${candidate.experience}<br>
-                <strong>Languages:</strong> ${candidate.languages}<br>
-                <strong>Skills:</strong> ${candidate.skills}<br>
-                <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}<br>
-                ${extraInfo}
+              <strong>Age:</strong> ${candidate.age}<br>
+              <strong>Experience:</strong> ${candidate.experience}<br>
+              <strong>Languages:</strong> ${candidate.languages}<br>
+              <strong>Skills:</strong> ${candidate.skills}<br>
+              <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}<br>
+              ${extraInfo}
               </p>
             `;
-            // If reservation not transferred, add countdown timer and Transferred button
+            // If reservation not transferred, add countdown timer and a "Transfer" button
             if (!reservation.transferred) {
               const countdownDiv = document.createElement("div");
               countdownDiv.id = "countdown-" + candidateId;
               countdownDiv.style.marginTop = "10px";
               card.appendChild(countdownDiv);
-              const transferredBtn = document.createElement("button");
-              transferredBtn.innerText = "Transferred";
-              transferredBtn.className = "btn";
-              transferredBtn.style.marginTop = "5px";
-              transferredBtn.onclick = function() { updateReservationTransferred(candidateId); };
-              card.appendChild(transferredBtn);
+              const transferBtn = document.createElement("button");
+              transferBtn.innerText = "Transfer";
+              transferBtn.className = "btn";
+              transferBtn.style.marginTop = "5px";
+              transferBtn.onclick = function() { updateReservationTransferred(candidateId); };
+              card.appendChild(transferBtn);
               startCountdown(candidateId, reservation.expirationTimestamp, countdownDiv);
             } else {
               const transferredLabel = document.createElement("div");
               transferredLabel.innerText = "Transferred";
               transferredLabel.style.marginTop = "10px";
+              transferredLabel.style.color = "grey";
               card.appendChild(transferredLabel);
             }
             // Add the Cancel Reservation button
@@ -869,7 +860,6 @@
         console.error("Error loading reserved candidates:", err);
       }
     }
-
     // Function to update 'transferred' status in a reservation
     async function updateReservationTransferred(candidateId) {
       try {
@@ -879,7 +869,6 @@
         console.error("Error updating transferred status:", err);
       }
     }
-
     // Countdown Timer function
     function startCountdown(reservationId, expirationTimestamp, displayElement) {
       function updateCountdown() {
@@ -907,7 +896,6 @@
       const intervalId = setInterval(updateCountdown, 1000);
       displayElement.dataset.intervalId = intervalId;
     }
-
     async function deleteCandidate(candidateId, containerId, country) {
       if (confirm("Are you sure you want to delete this candidate?")) {
         try {
@@ -962,7 +950,6 @@
         alert("Error updating candidate.");
       }
     }
-
     // -----------------------------
     // New Function: Cancel Reservation
     // -----------------------------
@@ -996,7 +983,6 @@
         }
       }
     }
-
     // -----------------------------
     // Admin Panel (User Management) Functions
     // -----------------------------
@@ -1090,7 +1076,6 @@
         }
       }
     }
-
     // -----------------------------
     // Add New User Functionality
     // -----------------------------
@@ -1128,7 +1113,6 @@
         errorElem.innerText = "Error adding user. Please try again.";
       }
     });
-
     // -----------------------------
     // Change Password (Self-Service)
     // -----------------------------
@@ -1170,7 +1154,6 @@
         console.error("Error:", error);
       }
     });
-
     // -----------------------------
     // Candidate Management Panel (Adding Candidates)
     // -----------------------------
@@ -1243,12 +1226,12 @@
           `;
           candidateDiv.innerHTML = mediaHtml + `
             <p>
-              <strong>Age:</strong> ${candidate.age}<br>
-              <strong>Country:</strong> ${candidate.country}<br>
-              <strong>Experience:</strong> ${candidate.experience}<br>
-              <strong>Languages:</strong> ${candidate.languages}<br>
-              <strong>Skills:</strong> ${candidate.skills}<br>
-              <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
+            <strong>Age:</strong> ${candidate.age}<br>
+            <strong>Country:</strong> ${candidate.country}<br>
+            <strong>Experience:</strong> ${candidate.experience}<br>
+            <strong>Languages:</strong> ${candidate.languages}<br>
+            <strong>Skills:</strong> ${candidate.skills}<br>
+            <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
             </p>
           `;
           if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
@@ -1285,7 +1268,6 @@
         console.error("Error loading candidates:", err);
       }
     }
-
     // Image Upload Function (to Imgur)
     async function uploadImageToImgur(file) {
       const formData = new FormData();
@@ -1307,7 +1289,6 @@
         throw err;
       }
     }
-
     // Video Upload Function (to Imgur)
     async function uploadVideoToImgur(file) {
       const formData = new FormData();
@@ -1329,7 +1310,6 @@
         throw err;
       }
     }
-
     // Modal Preview Functions
     function previewMedia(mediaType, mediaUrl) {
       const modal = document.getElementById("media-preview-modal");
@@ -1353,7 +1333,6 @@
       document.getElementById("media-preview-modal").style.display = "none";
       document.getElementById("media-preview-content").innerHTML = "";
     }
-
     // Reservation Filter Functions
     document.getElementById("filter-form").addEventListener("submit", function(event) {
       event.preventDefault();
@@ -1368,14 +1347,12 @@
       document.getElementById("filter-value").value = "";
       loadReservedCandidates();
     }
-
     // On DOM Content Loaded: ensure admin exists and show the login screen.
     document.addEventListener("DOMContentLoaded", async () => {
       await ensureAdminExists();
       document.getElementById("login-div").style.display = "block";
       document.getElementById("home").style.display = "none";
     });
-
     // Expose functions to global window object for inline event handlers
     window.loadCandidatesForSection = loadCandidatesForSection;
     window.deleteCandidate = deleteCandidate;
