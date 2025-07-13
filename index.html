@@ -1,842 +1,917 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Candidate Reservation</title>
-    <!-- Google Font for a modern look -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      /* Global Styles */
-      body {
-        font-family: 'Roboto', sans-serif;
-        margin: 0;
-        padding: 0;
-        background: #f1f1f1;
-        text-align: center;
-        color: #333;
-      }
-      h1,
-      h2,
-      h3 {
-        margin: 20px 0;
-      }
-      /* Fixed Visa System Button Styles */
-      #visa-button {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        background: #4CAF50;
-        color: #fff;
-        padding: 10px 20px;
-        text-decoration: none;
-        border-radius: 5px;
-        font-size: 16px;
-        font-weight: 500;
-        transition: background 0.3s;
-        z-index: 10000;
-      }
-      #visa-button:hover {
-        background: #45a049;
-      }
-      /* Button Styles */
-      .btn {
-        padding: 10px 20px;
-        background: #4CAF50;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.3s;
-      }
-      .btn:hover {
-        background: #45a049;
-      }
-      .small-btn {
-        padding: 5px 10px;
-        font-size: 14px;
-        margin-left: 5px;
-        background: #2196F3;
-        color: #fff;
-        border: none;
-        border-radius: 3px;
-        cursor: pointer;
-        transition: background 0.3s;
-      }
-      .small-btn.red {
-        background: #f44336;
-      }
-      .small-btn:hover {
-        opacity: 0.9;
-      }
-      /* Login Form Styles */
-      #login-div {
-        margin: 50px auto;
-        width: 300px;
-        padding: 20px;
-        background: #fff;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-      #login-div input,
-      #login-div select {
-        width: 100%;
-        padding: 8px;
-        margin: 10px 0;
-        box-sizing: border-box;
-      }
-      /* User Controls (Change Password & Logout) */
-      #user-controls {
-        margin: 10px auto;
-      }
-      #user-controls button {
-        margin: 5px;
-        padding: 8px 12px;
-        font-size: 14px;
-        cursor: pointer;
-      }
-      /* Home Page - Section Circles */
-      #section-circles {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-        margin: 20px 0;
-      }
-      .section-item {
-        display: inline-block;
-        text-align: center;
-        cursor: pointer;
-      }
-      .section-circle {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        border: 3px solid #4CAF50;
-        background-size: cover;
-        background-position: center;
-        transition: transform 0.3s, box-shadow 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 24px;
-        font-weight: 700;
-      }
-      .section-circle:hover {
-        transform: scale(1.1);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      }
-      .section-label {
-        margin-top: 8px;
-        font-size: 18px;
-        font-weight: 500;
-      }
-      /* Sections – hidden by default */
-      .section {
-        display: none;
-        padding: 30px;
-        animation: fadeIn 0.5s;
-      }
-      .back-button {
-        margin: 20px;
-        font-size: 18px;
-        cursor: pointer;
-        color: #2196F3;
-        text-decoration: underline;
-      }
-      /* Candidate Card Style */
-      .item-card {
-        background: #fff;
-        margin: 15px;
-        padding: 15px;
-        width: 260px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        display: inline-block;
-        text-align: left;
-        vertical-align: top;
-      }
-      /* Fixed size candidate image with border */
-      .item-image {
-        width: 200px;
-        height: 200px;
-        object-fit: cover;
-        border: 2px solid #ccc;
-        border-radius: 8px;
-        display: block;
-        margin: 0 auto;
-        cursor: pointer;
-      }
-      /* Candidate video: similar dimensions as image */
-      .item-video {
-        width: 200px;
-        height: 200px;
-        object-fit: cover;
-        border: 2px solid #ccc;
-        border-radius: 8px;
-        display: block;
-        margin: 10px auto;
-        cursor: pointer;
-      }
-      .reserve-button {
-        margin-top: 10px;
-        padding: 10px;
-        background: #4CAF50;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background 0.3s;
-        width: 100%;
-        font-weight: 500;
-      }
-      .reserve-button:hover {
-        background: #45a049;
-      }
-      .reserve-button:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-      /* Panels: Modified Admin and Candidate Sections styled as separate sections */
-      #admin-section,
-      #candidate-section {
-        background: #fff;
-        padding: 30px;
-        margin: 20px auto;
-        width: 80%;
-        max-width: 600px;
-        text-align: left;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-      #admin-section form input,
-      #admin-section form select,
-      #candidate-section form input,
-      #candidate-section form select {
-        width: 100%;
-        padding: 8px;
-        margin: 5px 0 10px;
-        box-sizing: border-box;
-      }
-      /* Modal Preview Styles */
-      #media-preview-modal {
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.8);
-      }
-      #media-preview-modal .modal-content {
-        margin: 10% auto;
-        padding: 20px;
-        width: 80%;
-        max-width: 800px;
-        background: #fff;
-        border-radius: 8px;
-        position: relative;
-      }
-      #media-preview-modal .close-button {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        font-size: 28px;
-        font-weight: bold;
-        color: #333;
-        cursor: pointer;
-      }
-      /* Reservation Modal Styles */
-      #reservation-modal {
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.8);
-      }
-      #reservation-modal .modal-content {
-        margin: 10% auto;
-        padding: 20px;
-        width: 80%;
-        max-width: 500px;
-        background: #fff;
-        border-radius: 8px;
-        position: relative;
-      }
-      #reservation-modal .close-button {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        font-size: 28px;
-        font-weight: bold;
-        color: #333;
-        cursor: pointer;
-      }
-      /* Reservation Form Vertical Layout */
-      #reservation-form label,
-      #reservation-form input,
-      #reservation-form select,
-      #reservation-form button {
-        display: block;
-        width: 90%;
-        margin: 10px auto;
-        box-sizing: border-box;
-      }
-      #reservation-form label {
-        text-align: left;
-        font-weight: 500;
-      }
-      /* Reservation Filter Styles */
-      #reservation-filter {
-        margin-bottom: 20px;
-      }
-      #reservation-filter form {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      #reservation-filter input,
-      #reservation-filter select {
-        padding: 5px;
-        font-size: 14px;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Fixed Visa System Button (initially hidden) -->
-    <a
-      href="https://andy0800.github.io/FURSATKUM/"
-      id="visa-button"
-      target="_blank"
-      style="display: none;"
-      >Visa System</a
-    >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Candidate Reservation</title>
+  <!-- Google Font for a modern look -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f1f1f1;
+      text-align: center;
+      color: #333;
+    }
+    h1, h2, h3 {
+      margin: 20px 0;
+    }
+    /* Button Styles */
+    .btn {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #45a049;
+    }
+    .small-btn {
+      padding: 5px 10px;
+      font-size: 14px;
+      margin-left: 5px;
+      background: #2196F3;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .small-btn.red {
+      background: #f44336;
+    }
+    .small-btn:hover {
+      opacity: 0.9;
+    }
+    /* Login Form Styles */
+    #login-div {
+      margin: 50px auto;
+      width: 300px;
+      padding: 20px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    #login-div input, #login-div select {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+    /* User Controls (Change Password & Logout) */
+    #user-controls {
+      margin: 10px auto;
+    }
+    #user-controls button {
+      margin: 5px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    /* Home Page - Section Circles */
+    #section-circles {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .section-item {
+      display: inline-block;
+      text-align: center;
+      cursor: pointer;
+    }
+    .section-circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 3px solid #4CAF50;
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .section-circle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .section-label {
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    /* Sections – hidden by default */
+    .section {
+      display: none;
+      padding: 30px;
+      animation: fadeIn 0.5s;
+    }
+    .back-button {
+      margin: 20px;
+      font-size: 18px;
+      cursor: pointer;
+      color: #2196F3;
+      text-decoration: underline;
+    }
+    /* Candidate Card Style */
+    .item-card {
+      background: #fff;
+      margin: 15px;
+      padding: 15px;
+      width: 260px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: inline-block;
+      text-align: left;
+      vertical-align: top;
+    }
+    /* Fixed size candidate image with border */
+    .item-image {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      display: block;
+      margin: 0 auto;
+      cursor: pointer;
+    }
+    /* Candidate video: similar dimensions as image */
+    .item-video {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      display: block;
+      margin: 10px auto;
+      cursor: pointer;
+    }
+    .reserve-button {
+      margin-top: 10px;
+      padding: 10px;
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+      width: 100%;
+      font-weight: 500;
+    }
+    .reserve-button:hover {
+      background: #45a049;
+    }
+    .reserve-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    /* Panels: Modified Admin and Candidate Sections styled as separate sections */
+    #admin-section,
+    #candidate-section {
+      background: #fff;
+      padding: 30px;
+      margin: 20px auto;
+      width: 80%;
+      max-width: 600px;
+      text-align: left;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    #admin-section form input,
+    #admin-section form select,
+    #candidate-section form input,
+    #candidate-section form select {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 10px;
+      box-sizing: border-box;
+    }
+    /* Modal Preview Styles */
+    #media-preview-modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+    #media-preview-modal .modal-content {
+      margin: 10% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 800px;
+      background: #fff;
+      border-radius: 8px;
+      position: relative;
+    }
+    #media-preview-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+    }
+    /* Reservation Modal Styles */
+    #reservation-modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+    #reservation-modal .modal-content {
+      margin: 10% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 500px;
+      background: #fff;
+      border-radius: 8px;
+      position: relative;
+    }
+    #reservation-modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+    }
+    /* Reservation Form Vertical Layout */
+    #reservation-form label,
+    #reservation-form input,
+    #reservation-form select,
+    #reservation-form button {
+      display: block;
+      width: 90%;
+      margin: 10px auto;
+      box-sizing: border-box;
+    }
+    #reservation-form label {
+      text-align: left;
+      font-weight: 500;
+    }
+    /* Reservation Filter Styles */
+    #reservation-filter {
+      margin-bottom: 20px;
+    }
+    #reservation-filter form {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    #reservation-filter input, #reservation-filter select {
+      padding: 5px;
+      font-size: 14px;
+    }
+/* Request Modal Styles */
+#request-modal,
+#request-detail-modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.8);
+  overflow: auto;
+}
+#request-modal .modal-content,
+#request-detail-modal .modal-content {
+  margin: 10% auto;
+  padding: 20px;
+  width: 80%; max-width: 500px;
+  background: #fff;
+  border-radius: 8px;
+  position: relative;
+}
+#request-modal .close-button,
+#request-detail-modal .close-button {
+  position: absolute;
+  top: 10px; right: 20px;
+  font-size: 28px; font-weight: bold;
+  color: #333; cursor: pointer;
+}
+#request-form label,
+#request-form input,
+#request-form textarea,
+#request-form button {
+  display: block;
+  width: 90%;
+  margin: 10px auto;
+  box-sizing: border-box;
+}
 
-    <!-- Login Section -->
-    <div id="login-div">
-      <h1>Login</h1>
-      <form id="login-form">
-        <label for="role">Select Role:</label>
-        <select id="role">
-          <option value="administrator">Administrator</option>
-          <option value="maidmanager">Maid Manager</option>
-          <option value="marketer">Marketer</option>
+  </style>
+</head>
+<body>
+  <!-- Login Section -->
+  <div id="login-div">
+    <h1>Login</h1>
+    <form id="login-form">
+      <label for="role">Select Role:</label>
+      <select id="role">
+        <option value="administrator">Administrator</option>
+        <option value="maidmanager">Maid Manager</option>
+        <option value="marketer">Marketer</option>
+      </select>
+      <label for="username">Username:</label>
+      <input type="text" id="username" required />
+      <label for="password">Password:</label>
+      <input type="password" id="password" required />
+      <button type="submit" class="btn">Login</button>
+      <p id="login-error" style="color: red;"></p>
+    </form>
+  </div>
+  <!-- Home Page -->
+  <div id="home" style="display: none;">
+    <h1>Welcome to Our Candidate Reservation Site</h1>
+    <!-- User Controls (Change Password & Logout) -->
+    <div id="user-controls">
+      <button id="change-password-button" onclick="showChangePasswordPanel()" class="btn">Change Password</button>
+      <button id="logout-button" onclick="logout()" class="btn">Logout</button>
+    </div>
+<button class="btn" onclick="showRequestModal()">Create Request</button>
+    <!-- Section Circles (Country Sections + Management + Reserved) -->
+    <div id="section-circles">
+      <!-- Country Sections -->
+      <div class="section-item" onclick="openSection('section1'); loadCandidatesForSection('Sri Lanka', 'candidates-sri-lanka')">
+        <div class="section-circle" style="background-image: url('https://flagcdn.com/w320/lk.png');"></div>
+        <div class="section-label">Sri Lanka</div>
+      </div>
+      <div class="section-item" onclick="openSection('section2'); loadCandidatesForSection('Nepal', 'candidates-nepal')">
+        <div class="section-circle" style="background-image: url('https://flagcdn.com/w320/np.png');"></div>
+        <div class="section-label">Nepal</div>
+      </div>
+      <div class="section-item" onclick="openSection('section3'); loadCandidatesForSection('India', 'candidates-india')">
+        <div class="section-circle" style="background-image: url('https://flagcdn.com/w320/in.png');"></div>
+        <div class="section-label">India</div>
+      </div>
+      <div class="section-item" onclick="openSection('section4'); loadCandidatesForSection('Africa', 'candidates-africa')">
+        <div class="section-circle" style="background-image: url('https://flagcdn.com/w320/za.png');"></div>
+        <div class="section-label">Africa</div>
+      </div>
+      <div class="section-item" onclick="openSection('section5'); loadCandidatesForSection('Philippines', 'candidates-philippines')">
+        <div class="section-circle" style="background-image: url('https://flagcdn.com/w320/ph.png');"></div>
+        <div class="section-label">Philippines</div>
+      </div>
+      <!-- Management Circles -->
+      <div id="user-management-section" class="section-item" onclick="openSection('admin-section'); loadUsersList()">
+        <div class="section-circle" style="background-color: #ffc107;">UM</div>
+        <div class="section-label">User Management</div>
+      </div>
+      <div id="candidate-management-section" class="section-item" onclick="openSection('candidate-section'); loadAllCandidates()">
+        <div class="section-circle" style="background-color: #17a2b8;">CM</div>
+        <div class="section-label">Candidate Management</div>
+      </div>
+  <!-- Reserved Candidates Circle -->
+  <div class="section-item" onclick="openReservedSection()">
+    <div class="section-circle" style="background-color: #9c27b0;">RES</div>
+    <div class="section-label">Reserved</div>
+  </div>
+
+  <!-- Requests Section Circle -->
+  <div class="section-item" onclick="openSection('request-section'); loadRequestsList()">
+    <div class="section-circle" style="background-color: #ff5722;">REQ</div>
+    <div class="section-label">Requests</div>
+  </div>
+</div> <!-- end of #section-circles -->
+</div>  <!-- end of #home -->
+  <!-- Candidate Sections -->
+  <!-- Section 1: Sri Lanka Candidates -->
+  <div id="section1" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>Sri Lanka Candidates</h2>
+    <div id="candidates-sri-lanka"></div>
+  </div>
+  <!-- Section 2: Nepal Candidates -->
+  <div id="section2" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>Nepal Candidates</h2>
+    <div id="candidates-nepal"></div>
+  </div>
+  <!-- Section 3: India Candidates -->
+  <div id="section3" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>India Candidates</h2>
+    <div id="candidates-india"></div>
+  </div>
+  <!-- Section 4: Africa Candidates (Empty) -->
+  <div id="section4" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>Africa Candidates</h2>
+    <div id="candidates-africa"><p>No candidates available in this section.</p></div>
+  </div>
+  <!-- Section 5: Philippines Candidates (Empty) -->
+  <div id="section5" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>Philippines Candidates</h2>
+    <div id="candidates-philippines"><p>No candidates available in this section.</p></div>
+  </div>
+  <!-- Reserved Candidates Section -->
+  <div id="reserved-section-div" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>Reserved Candidates</h2>
+    <!-- Reservation Filter Form -->
+    <div id="reservation-filter">
+      <form id="filter-form">
+        <select id="filter-field">
+          <option value="">Select Field</option>
+          <option value="customerName">Name of Customer</option>
+          <option value="customerPhone">Phone Number</option>
+          <option value="secretaryName">Name Secretary</option>
+          <option value="reservationDate">Date</option>
+          <option value="price">Price</option>
         </select>
-        <label for="username">Username:</label>
-        <input type="text" id="username" required />
-        <label for="password">Password:</label>
-        <input type="password" id="password" required />
-        <button type="submit" class="btn">Login</button>
-        <p id="login-error" style="color: red;"></p>
+        <input type="text" id="filter-value" placeholder="Search..." />
+        <button type="submit" class="btn">Filter</button>
+        <button type="button" class="btn" onclick="clearFilter()">Clear Filter</button>
       </form>
     </div>
+    <div id="reserved-candidates-container"></div>
+  </div>
+<!-- Requests Section -->
+<div id="request-section" class="section">
+  <div class="back-button" onclick="goHome()">← Back</div>
+  <h2>Requests</h2>
+  <div id="requests-list"></div>
+</div>
 
-    <!-- Home Page -->
-    <div id="home" style="display: none;">
-      <h1>Welcome to Our Candidate Reservation Site</h1>
-      <!-- User Controls (Change Password & Logout) -->
-      <div id="user-controls">
-        <button
-          id="change-password-button"
-          onclick="showChangePasswordPanel()"
-          class="btn"
-        >
-          Change Password
-        </button>
-        <button id="logout-button" onclick="logout()" class="btn">Logout</button>
-      </div>
-      <!-- Section Circles (Country Sections + Management + Reserved) -->
-      <div id="section-circles">
-        <!-- Country Sections -->
-        <div
-          class="section-item"
-          onclick="openSection('section1'); loadCandidatesForSection('Sri Lanka', 'candidates-sri-lanka')"
-        >
-          <div
-            class="section-circle"
-            style="background-image: url('https://flagcdn.com/w320/lk.png');"
-          ></div>
-          <div class="section-label">Sri Lanka</div>
-        </div>
-        <div
-          class="section-item"
-          onclick="openSection('section2'); loadCandidatesForSection('Nepal', 'candidates-nepal')"
-        >
-          <div
-            class="section-circle"
-            style="background-image: url('https://flagcdn.com/w320/np.png');"
-          ></div>
-          <div class="section-label">Nepal</div>
-        </div>
-        <div
-          class="section-item"
-          onclick="openSection('section3'); loadCandidatesForSection('India', 'candidates-india')"
-        >
-          <div
-            class="section-circle"
-            style="background-image: url('https://flagcdn.com/w320/in.png');"
-          ></div>
-          <div class="section-label">India</div>
-        </div>
-        <div
-          class="section-item"
-          onclick="openSection('section4'); loadCandidatesForSection('Africa', 'candidates-africa')"
-        >
-          <div
-            class="section-circle"
-            style="background-image: url('https://flagcdn.com/w320/za.png');"
-          ></div>
-          <div class="section-label">Africa</div>
-        </div>
-        <div
-          class="section-item"
-          onclick="openSection('section5'); loadCandidatesForSection('Philippines', 'candidates-philippines')"
-        >
-          <div
-            class="section-circle"
-            style="background-image: url('https://flagcdn.com/w320/ph.png');"
-          ></div>
-          <div class="section-label">Philippines</div>
-        </div>
-        <!-- Management Circles -->
-        <div
-          id="user-management-section"
-          class="section-item"
-          onclick="openSection('admin-section'); loadUsersList()"
-        >
-          <div class="section-circle" style="background-color: #ffc107;">UM</div>
-          <div class="section-label">User Management</div>
-        </div>
-        <div
-          id="candidate-management-section"
-          class="section-item"
-          onclick="openSection('candidate-section'); loadAllCandidates()"
-        >
-          <div class="section-circle" style="background-color: #17a2b8;">CM</div>
-          <div class="section-label">Candidate Management</div>
-        </div>
-        <!-- Reserved Candidates Circle -->
-        <div class="section-item" onclick="openReservedSection()">
-          <div class="section-circle" style="background-color: #9c27b0;">RES</div>
-          <div class="section-label">Reserved</div>
-        </div>
-      </div>
-    </div>
+<!-- Request Creation Modal -->
+<div id="request-modal">
+  <div class="modal-content">
+    <span class="close-button" onclick="closeRequestModal()">&times;</span>
+    <form id="request-form">
+      <h2>Create Request</h2>
+      <label for="req-customer-name">Customer Name:</label>
+      <input type="text" id="req-customer-name" required />
+      <label for="req-customer-phone">Customer Phone:</label>
+      <input type="text" id="req-customer-phone" required />
+      <label for="req-details">Request Details:</label>
+      <textarea id="req-details" required style="width:90%;height:80px;"></textarea>
+      <label for="req-secretary">Secretary In Charge:</label>
+      <input type="text" id="req-secretary" required />
+      <button type="submit" class="btn">Submit Request</button>
+    </form>
+  </div>
+</div>
 
-    <!-- Candidate Sections -->
-    <!-- Section 1: Sri Lanka Candidates -->
-    <div id="section1" class="section">
-      <div class="back-button" onclick="goHome()">← Back</div>
-      <h2>Sri Lanka Candidates</h2>
-      <div id="candidates-sri-lanka"></div>
-    </div>
-    <!-- Section 2: Nepal Candidates -->
-    <div id="section2" class="section">
-      <div class="back-button" onclick="goHome()">← Back</div>
-      <h2>Nepal Candidates</h2>
-      <div id="candidates-nepal"></div>
-    </div>
-    <!-- Section 3: India Candidates -->
-    <div id="section3" class="section">
-      <div class="back-button" onclick="goHome()">← Back</div>
-      <h2>India Candidates</h2>
-      <div id="candidates-india"></div>
-    </div>
-    <!-- Section 4: Africa Candidates (Empty) -->
-    <div id="section4" class="section">
-      <div class="back-button" onclick="goHome()">← Back</div>
-      <h2>Africa Candidates</h2>
-      <div id="candidates-africa">
-        <p>No candidates available in this section.</p>
-      </div>
-    </div>
-    <!-- Section 5: Philippines Candidates (Empty) -->
-    <div id="section5" class="section">
-      <div class="back-button" onclick="goHome()">← Back</div>
-      <h2>Philippines Candidates</h2>
-      <div id="candidates-philippines">
-        <p>No candidates available in this section.</p>
-      </div>
-    </div>
+<!-- Request Detail Modal -->
+<div id="request-detail-modal">
+  <div class="modal-content">
+    <span class="close-button" onclick="closeRequestDetailModal()">&times;</span>
+    <div id="request-detail-content"></div>
+  </div>
+</div>
 
-    <!-- Reserved Candidates Section -->
-    <div id="reserved-section-div" class="section">
-      <div class="back-button" onclick="goHome()">← Back</div>
-      <h2>Reserved Candidates</h2>
-      <!-- Reservation Filter Form -->
-      <div id="reservation-filter">
-        <form id="filter-form">
-          <select id="filter-field">
-            <option value="">Select Field</option>
-            <option value="customerName">Name of Customer</option>
-            <option value="customerPhone">Phone Number</option>
-            <option value="secretaryName">Name Secretary</option>
-            <option value="reservationDate">Date</option>
-            <option value="price">Price</option>
-          </select>
-          <input type="text" id="filter-value" placeholder="Search..." />
-          <button type="submit" class="btn">Filter</button>
-          <button type="button" class="btn" onclick="clearFilter()">Clear Filter</button>
-        </form>
-      </div>
-      <div id="reserved-candidates-container"></div>
+  <!-- Admin Section (User Management) -->
+  <div id="admin-section" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>Admin Panel - User Management</h2>
+    <!-- Form to add new user -->
+    <form id="add-user-form">
+      <label>Username:</label>
+      <input type="text" id="new-username" required />
+      <label>Role:</label>
+      <select id="new-role">
+        <option value="administrator">Administrator</option>
+        <option value="maidmanager">Maid Manager</option>
+        <option value="marketer">Marketer</option>
+      </select>
+      <label>Password:</label>
+      <input type="password" id="new-password" required />
+      <button type="submit" class="btn">Add User</button>
+      <p id="add-user-error" style="color: red;"></p>
+      <p id="add-user-success" style="color: green;"></p>
+    </form>
+    <hr/>
+    <h3>Existing Users</h3>
+    <div id="users-list"></div>
+  </div>
+  <!-- Candidate Management Section -->
+  <div id="candidate-section" class="section">
+    <div class="back-button" onclick="goHome()">← Back</div>
+    <h2>Candidate Management</h2>
+    <form id="add-candidate-form">
+      <label for="candidate-country">Country:</label>
+      <select id="candidate-country" required>
+        <option value="Sri Lanka">Sri Lanka</option>
+        <option value="Nepal">Nepal</option>
+        <option value="India">India</option>
+        <option value="Africa">Africa</option>
+        <option value="Philippines">Philippines</option>
+      </select>
+      <label for="candidate-age">Age:</label>
+      <input type="text" id="candidate-age" required />
+      <label for="candidate-experience">Experience &amp; Details:</label>
+      <input type="text" id="candidate-experience" required />
+      <label for="candidate-languages">Languages:</label>
+      <input type="text" id="candidate-languages" required />
+      <label for="candidate-skills">Skills:</label>
+      <input type="text" id="candidate-skills" required />
+      <label for="candidate-secretary">Secretary In Charge:</label>
+      <input type="text" id="candidate-secretary" required />
+      <label for="candidate-image">Candidate Image:</label>
+      <input type="file" id="candidate-image" accept="image/*" required />
+      <label for="candidate-video">Candidate Video (Optional):</label>
+      <input type="file" id="candidate-video" accept="video/*" />
+      <button type="submit" class="btn">Add Candidate</button>
+      <p id="candidate-add-error" style="color:red;"></p>
+      <p id="candidate-add-success" style="color:green;"></p>
+    </form>
+    <hr/>
+    <h3>Existing Candidates (All)</h3>
+    <div id="candidates-list"></div>
+  </div>
+  <!-- Change Password Panel -->
+  <div id="change-password-panel" class="section">
+    <h2>Change Your Password</h2>
+    <form id="change-password-form">
+      <label>Current Password:</label>
+      <input type="password" id="current-password" required />
+      <label>New Password:</label>
+      <input type="password" id="new-user-password" required />
+      <label>Confirm New Password:</label>
+      <input type="password" id="confirm-new-password" required />
+      <button type="submit" class="btn">Update Password</button>
+      <p id="change-password-error" style="color: red;"></p>
+      <p id="change-password-success" style="color: green;"></p>
+    </form>
+    <button onclick="hideChangePasswordPanel()" class="btn" style="margin-top: 10px;">Close</button>
+  </div>
+  <!-- Modal Preview for Candidate Media -->
+  <div id="media-preview-modal">
+    <div class="modal-content">
+      <span class="close-button" onclick="closeModal()">&times;</span>
+      <div id="media-preview-content"></div>
     </div>
-
-    <!-- Admin Section (User Management) -->
-    <div id="admin-section" class="section">
-      <div class="back-button" onclick="goHome()">← Back</div>
-      <h2>Admin Panel - User Management</h2>
-      <!-- Form to add new user -->
-      <form id="add-user-form">
-        <label>Username:</label>
-        <input type="text" id="new-username" required />
-        <label>Role:</label>
-        <select id="new-role">
-          <option value="administrator">Administrator</option>
-          <option value="maidmanager">Maid Manager</option>
-          <option value="marketer">Marketer</option>
-        </select>
-        <label>Password:</label>
-        <input type="password" id="new-password" required />
-        <button type="submit" class="btn">Add User</button>
-        <p id="add-user-error" style="color: red;"></p>
-        <p id="add-user-success" style="color: green;"></p>
+  </div>
+  <!-- Reservation Invoice Modal -->
+  <div id="reservation-modal">
+    <div class="modal-content">
+      <span class="close-button" onclick="closeReservationModal()">&times;</span>
+      <form id="reservation-form">
+        <h2>Reservation Details</h2>
+        <label for="customer-name">Name of Customer:</label>
+        <input type="text" id="customer-name" required />
+        <label for="phone-number">Phone Number:</label>
+        <input type="text" id="phone-number" required />
+        <label for="secretary-name">Name Secretary:</label>
+        <input type="text" id="secretary-name" required />
+        <label for="reservation-date">Date:</label>
+        <input type="date" id="reservation-date" required />
+        <label for="price">Price:</label>
+        <input type="number" id="price" required />
+        <!-- New Trial Details Field -->
+        <label for="trial-details">Trial Details:</label>
+        <input type="text" id="trial-details" placeholder="[Trial Details]" />
+        <button type="submit" class="btn">Submit Reservation</button>
       </form>
-      <hr />
-      <h3>Existing Users</h3>
-      <div id="users-list"></div>
     </div>
-
-    <!-- Candidate Management Section -->
-    <div id="candidate-section" class="section">
-      <div class="back-button" onclick="goHome()">← Back</div>
-      <h2>Candidate Management</h2>
-      <form id="add-candidate-form">
-        <label for="candidate-country">Country:</label>
-        <select id="candidate-country" required>
-          <option value="Sri Lanka">Sri Lanka</option>
-          <option value="Nepal">Nepal</option>
-          <option value="India">India</option>
-          <option value="Africa">Africa</option>
-          <option value="Philippines">Philippines</option>
-        </select>
-        <label for="candidate-age">Age:</label>
-        <input type="text" id="candidate-age" required />
-        <label for="candidate-experience">Experience &amp; Details:</label>
-        <input type="text" id="candidate-experience" required />
-        <label for="candidate-languages">Languages:</label>
-        <input type="text" id="candidate-languages" required />
-        <label for="candidate-skills">Skills:</label>
-        <input type="text" id="candidate-skills" required />
-        <label for="candidate-secretary">Secretary In Charge:</label>
-        <input type="text" id="candidate-secretary" required />
-        <label for="candidate-image">Candidate Image:</label>
-        <input type="file" id="candidate-image" accept="image/*" required />
-        <label for="candidate-video">Candidate Video (Optional):</label>
-        <input type="file" id="candidate-video" accept="video/*" />
-        <button type="submit" class="btn">Add Candidate</button>
-        <p id="candidate-add-error" style="color:red;"></p>
-        <p id="candidate-add-success" style="color:green;"></p>
-      </form>
-      <hr />
-      <h3>Existing Candidates (All)</h3>
-      <div id="candidates-list"></div>
-    </div>
-
-    <!-- Change Password Panel -->
-    <div id="change-password-panel" class="section">
-      <h2>Change Your Password</h2>
-      <form id="change-password-form">
-        <label>Current Password:</label>
-        <input type="password" id="current-password" required />
-        <label>New Password:</label>
-        <input type="password" id="new-user-password" required />
-        <label>Confirm New Password:</label>
-        <input type="password" id="confirm-new-password" required />
-        <button type="submit" class="btn">Update Password</button>
-        <p id="change-password-error" style="color: red;"></p>
-        <p id="change-password-success" style="color: green;"></p>
-      </form>
-      <button
-        onclick="hideChangePasswordPanel()"
-        class="btn"
-        style="margin-top: 10px;"
-      >
-        Close
-      </button>
-    </div>
-
-    <!-- Modal Preview for Candidate Media -->
-    <div id="media-preview-modal">
-      <div class="modal-content">
-        <span class="close-button" onclick="closeModal()">&times;</span>
-        <div id="media-preview-content"></div>
-      </div>
-    </div>
-
-    <!-- Reservation Invoice Modal -->
-    <div id="reservation-modal">
-      <div class="modal-content">
-        <span class="close-button" onclick="closeReservationModal()">&times;</span>
-        <form id="reservation-form">
-          <h2>Reservation Details</h2>
-          <label for="customer-name">Name of Customer:</label>
-          <input type="text" id="customer-name" required />
-          <label for="phone-number">Phone Number:</label>
-          <input type="text" id="phone-number" required />
-          <label for="secretary-name">Name Secretary:</label>
-          <input type="text" id="secretary-name" required />
-          <label for="reservation-date">Date:</label>
-          <input type="date" id="reservation-date" required />
-          <label for="price">Price:</label>
-          <input type="number" id="price" required />
-          <!-- New Trial Details Field -->
-          <label for="trial-details">Trial Details:</label>
-          <input type="text" id="trial-details" placeholder="[Trial Details]" />
-          <button type="submit" class="btn">Submit Reservation</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Firebase & Navigation Scripts -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-      import { 
-        getFirestore,
-        doc,
-        setDoc,
-        getDocs,
-        collection,
-        getDoc,
-        updateDoc,
-        deleteDoc,
-        addDoc,
-        query,
-        where
-      } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
-
-      // Firebase configuration details
-      const firebaseConfig = {
-        apiKey: "AIzaSyBa2i6Dv-Wi5KAUe91DeNL5U9L--HZkni0",
-        authDomain: "fursatkum-792e8.firebaseapp.com",
-        projectId: "fursatkum-792e8",
-        storageBucket: "fursatkum-792e8.firebasestorage.app",
-        messagingSenderId: "275915365900",
-        appId: "1:275915365900:web:b365e63d2da8cbd3691829",
-        measurementId: "G-FLSGFE2QYV"
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-      const db = getFirestore(app);
-
-      // Global variable to store current user details
+  </div>
+  <!-- Firebase & Navigation Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDocs,
+      collection,
+      getDoc,
+      updateDoc,
+      deleteDoc,
+      addDoc,
+      query,
+      where
+    } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+    // Firebase configuration details
+    const firebaseConfig = {
+      apiKey: "AIzaSyBa2i6Dv-Wi5KAUe91DeNL5U9L--HZkni0",
+      authDomain: "fursatkum-792e8.firebaseapp.com",
+      projectId: "fursatkum-792e8",
+      storageBucket: "fursatkum-792e8.firebasestorage.app",
+      messagingSenderId: "275915365900",
+      appId: "1:275915365900:web:b365e63d2da8cbd3691829",
+      measurementId: "G-FLSGFE2QYV"
+    };
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    // Global variable to store current user details
+    window.currentUser = null;
+    // Global variables for reservation modal
+    let currentReservationCandidateId = null;
+    let currentReservationCountry = "";
+    let currentReservationContainerId = "";
+    // Global filter criteria for reserved section
+    let reservationFilter = { field: "", value: "" };
+    // Ensure default administrator exists on load
+    async function ensureAdminExists() {
+      const adminRef = doc(db, "users", "Andrew");
+      const adminSnap = await getDoc(adminRef);
+      if (!adminSnap.exists()) {
+        await setDoc(adminRef, { username: "Andrew", role: "administrator", password: "ROBENHOOD" });
+      }
+    }
+    // Login functionality – using Firestore users collection
+    document.getElementById("login-form").addEventListener("submit", async function(event) {
+      event.preventDefault();
+      const role = document.getElementById("role").value;
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const loginError = document.getElementById("login-error");
+      const userDocRef = doc(db, "users", username);
+      const userDocSnap = await getDoc(userDocRef);
+      if (!userDocSnap.exists()) {
+        loginError.innerText = "User not found.";
+        return;
+      }
+      const userData = userDocSnap.data();
+      if (userData.password !== password || userData.role !== role) {
+        loginError.innerText = "Invalid credentials.";
+        return;
+      }
+      window.currentUser = { username, role, password };
+      document.getElementById("login-div").style.display = "none";
+      document.getElementById("home").style.display = "block";
+      loginError.innerText = "";
+      if (role === "administrator") {
+        document.getElementById("user-management-section").style.display = "inline-block";
+      } else {
+        document.getElementById("user-management-section").style.display = "none";
+      }
+      if (role === "administrator" || role === "maidmanager") {
+        document.getElementById("candidate-management-section").style.display = "inline-block";
+      } else {
+        document.getElementById("candidate-management-section").style.display = "none";
+      }
+    });
+    // Logout functionality
+    function logout() {
       window.currentUser = null;
-      // Global variables for reservation modal
-      let currentReservationCandidateId = null;
-      let currentReservationCountry = "";
-      let currentReservationContainerId = "";
-      // Global filter criteria for reserved section
-      let reservationFilter = { field: "", value: "" };
-
-      // Ensure default administrator exists on load
-      async function ensureAdminExists() {
-        const adminRef = doc(db, "users", "Andrew");
-        const adminSnap = await getDoc(adminRef);
-        if (!adminSnap.exists()) {
-          await setDoc(adminRef, { username: "Andrew", role: "administrator", password: "ROBENHOOD" });
-        }
+      document.getElementById("home").style.display = "none";
+      document.getElementById("login-div").style.display = "block";
+      document.getElementById("admin-section").style.display = "none";
+      document.getElementById("change-password-panel").style.display = "none";
+      document.getElementById("candidate-section").style.display = "none";
+    }
+    // Navigation functions
+    function goHome() {
+      const sections = document.getElementsByClassName('section');
+      for (let sec of sections) { sec.style.display = 'none'; }
+      document.getElementById('home').style.display = 'block';
+    }
+    function openSection(sectionId) {
+      document.getElementById('home').style.display = 'none';
+      const sections = document.getElementsByClassName('section');
+      for (let sec of sections) { sec.style.display = 'none'; }
+      document.getElementById(sectionId).style.display = 'block';
+    }
+    function openReservedSection() {
+      document.getElementById('home').style.display = 'none';
+      const sections = document.getElementsByClassName('section');
+      for (let sec of sections) { sec.style.display = 'none'; }
+      document.getElementById("reserved-section-div").style.display = "block";
+      loadReservedCandidates();
+    }
+    // -----------------------------
+    // Reservation Modal Functions
+    // -----------------------------
+    function showReservationForm(candidateId, country, containerId) {
+      currentReservationCandidateId = candidateId;
+      currentReservationCountry = country;
+      currentReservationContainerId = containerId;
+      document.getElementById("reservation-modal").style.display = "block";
+    }
+    function closeReservationModal() {
+      document.getElementById("reservation-modal").style.display = "none";
+      document.getElementById("reservation-form").reset();
+    }
+    document.getElementById("reservation-form").addEventListener("submit", async function(event) {
+      event.preventDefault();
+      const customerName = document.getElementById("customer-name").value;
+      const phoneNumber = document.getElementById("phone-number").value;
+      const secretaryName = document.getElementById("secretary-name").value;
+      const reservationDate = document.getElementById("reservation-date").value;
+      const price = document.getElementById("price").value;
+      const trialDetails = document.getElementById("trial-details").value;
+      const reservationTimestamp = Date.now();
+      const expirationTimestamp = reservationTimestamp + 3 * 24 * 60 * 60 * 1000; // 3 days in ms
+      try {
+        await setDoc(doc(db, "reservations", currentReservationCandidateId), {
+          reserved: true,
+          reservedBy: window.currentUser.username,
+          customerName,
+          customerPhone: phoneNumber,
+          secretaryName,
+          reservationDate,
+          price,
+          trialDetails,
+          reservationTimestamp,
+          expirationTimestamp,
+          transferred: false
+        });
+        closeReservationModal();
+        loadCandidatesForSection(currentReservationCountry, currentReservationContainerId);
+      } catch (err) {
+        console.error("Error reserving candidate:", err);
+        alert("Error reserving candidate.");
       }
-
-      // Login functionality – using Firestore users collection
-      document.getElementById("login-form").addEventListener("submit", async function(event) {
-        event.preventDefault();
-        const role = document.getElementById("role").value;
-        const username = document.getElementById("username").value.trim();
-        const password = document.getElementById("password").value;
-        const loginError = document.getElementById("login-error");
-        const userDocRef = doc(db, "users", username);
-        const userDocSnap = await getDoc(userDocRef);
-        if (!userDocSnap.exists()) {
-          loginError.innerText = "User not found.";
+    });
+    // -----------------------------
+    // Candidate Listing and Editing Functions
+    // -----------------------------
+    async function loadCandidatesForSection(country, containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+      try {
+        const q = query(collection(db, "candidates"), where("country", "==", country));
+        const querySnapshot = await getDocs(q);
+        console.log("Candidates for", country, "=>", querySnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() })));
+        const resSnapshot = await getDocs(collection(db, "reservations"));
+        const reservedMap = {};
+        resSnapshot.forEach(resDoc => { reservedMap[resDoc.id] = resDoc.data(); });
+        if (querySnapshot.empty) {
+          container.innerHTML = "<p>No candidates available in this section.</p>";
           return;
         }
-        const userData = userDocSnap.data();
-        if (userData.password !== password || userData.role !== role) {
-          loginError.innerText = "Invalid credentials.";
-          return;
-        }
-        window.currentUser = { username, role, password };
-        document.getElementById("login-div").style.display = "none";
-        document.getElementById("home").style.display = "block";
-        loginError.innerText = "";
-
-        // Display user-dependent sections.
-        if (role === "administrator") {
-          document.getElementById("user-management-section").style.display = "inline-block";
-          // Show the Visa System button only for administrators.
-          document.getElementById("visa-button").style.display = "block";
-        } else {
-          document.getElementById("user-management-section").style.display = "none";
-          document.getElementById("visa-button").style.display = "none";
-        }
-        if (role === "administrator" || role === "maidmanager") {
-          document.getElementById("candidate-management-section").style.display = "inline-block";
-        } else {
-          document.getElementById("candidate-management-section").style.display = "none";
-        }
-      });
-
-      // Logout functionality
-      function logout() {
-        window.currentUser = null;
-        document.getElementById("home").style.display = "none";
-        document.getElementById("login-div").style.display = "block";
-        document.getElementById("admin-section").style.display = "none";
-        document.getElementById("change-password-panel").style.display = "none";
-        document.getElementById("candidate-section").style.display = "none";
-        // Hide the Visa System button upon logout.
-        document.getElementById("visa-button").style.display = "none";
-      }
-
-      // Navigation functions
-      function goHome() {
-        const sections = document.getElementsByClassName('section');
-        for (let sec of sections) { sec.style.display = 'none'; }
-        document.getElementById('home').style.display = 'block';
-      }
-      function openSection(sectionId) {
-        document.getElementById('home').style.display = 'none';
-        const sections = document.getElementsByClassName('section');
-        for (let sec of sections) { sec.style.display = 'none'; }
-        document.getElementById(sectionId).style.display = 'block';
-      }
-      function openReservedSection() {
-        document.getElementById('home').style.display = 'none';
-        const sections = document.getElementsByClassName('section');
-        for (let sec of sections) { sec.style.display = 'none'; }
-        document.getElementById("reserved-section-div").style.display = "block";
-        loadReservedCandidates();
-      }
-
-      // -----------------------------
-      // Reservation Modal Functions
-      // -----------------------------
-      function showReservationForm(candidateId, country, containerId) {
-        currentReservationCandidateId = candidateId;
-        currentReservationCountry = country;
-        currentReservationContainerId = containerId;
-        document.getElementById("reservation-modal").style.display = "block";
-      }
-      function closeReservationModal() {
-        document.getElementById("reservation-modal").style.display = "none";
-        document.getElementById("reservation-form").reset();
-      }
-      document.getElementById("reservation-form").addEventListener("submit", async function(event) {
-        event.preventDefault();
-        const customerName = document.getElementById("customer-name").value;
-        const phoneNumber = document.getElementById("phone-number").value;
-        const secretaryName = document.getElementById("secretary-name").value;
-        const reservationDate = document.getElementById("reservation-date").value;
-        const price = document.getElementById("price").value;
-        const trialDetails = document.getElementById("trial-details").value;
-        const reservationTimestamp = Date.now();
-        const expirationTimestamp = reservationTimestamp + 3 * 24 * 60 * 60 * 1000; // 3 days in ms
-        try {
-          await setDoc(doc(db, "reservations", currentReservationCandidateId), {
-            reserved: true,
-            reservedBy: window.currentUser.username,
-            customerName,
-            customerPhone: phoneNumber,
-            secretaryName,
-            reservationDate,
-            price,
-            trialDetails,
-            reservationTimestamp,
-            expirationTimestamp,
-            transferred: false
-          });
-          closeReservationModal();
-          loadCandidatesForSection(currentReservationCountry, currentReservationContainerId);
-        } catch (err) {
-          console.error("Error reserving candidate:", err);
-          alert("Error reserving candidate.");
-        }
-      });
-
-      // -----------------------------
-      // Candidate Listing and Editing Functions
-      // -----------------------------
-      async function loadCandidatesForSection(country, containerId) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
-        try {
-          const q = query(collection(db, "candidates"), where("country", "==", country));
-          const querySnapshot = await getDocs(q);
-          console.log("Candidates for", country, "=>", querySnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() })));
-          const resSnapshot = await getDocs(collection(db, "reservations"));
-          const reservedMap = {};
-          resSnapshot.forEach(resDoc => { reservedMap[resDoc.id] = resDoc.data(); });
-          if (querySnapshot.empty) {
-            container.innerHTML = "<p>No candidates available in this section.</p>";
-            return;
+        querySnapshot.forEach(docSnap => {
+          const candidate = docSnap.data();
+          const candidateId = docSnap.id;
+          if (reservedMap[candidateId]) return;
+          const card = document.createElement('div');
+          card.className = 'item-card';
+          // Build media HTML: image is always shown; video if available.
+          const mediaHtml = `
+            <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
+            ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
+          `;
+          card.innerHTML = mediaHtml + `
+            <p>
+            <strong>Age:</strong> ${candidate.age}<br>
+            <strong>Experience:</strong> ${candidate.experience}<br>
+            <strong>Languages:</strong> ${candidate.languages}<br>
+            <strong>Skills:</strong> ${candidate.skills}<br>
+            <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
+            </p>
+          `;
+          // Reserve button to open reservation modal
+          const reserveBtn = document.createElement("button");
+          reserveBtn.innerText = "Reserve";
+          reserveBtn.className = "reserve-button";
+          reserveBtn.onclick = function() { showReservationForm(candidateId, country, containerId); };
+          card.appendChild(reserveBtn);
+          if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
+            const deleteBtn = document.createElement("button");
+            deleteBtn.innerText = "Delete";
+            deleteBtn.className = "small-btn red";
+            deleteBtn.onclick = function() { deleteCandidate(candidateId, containerId, country); };
+            card.appendChild(deleteBtn);
+            const editBtn = document.createElement("button");
+            editBtn.innerText = "Edit";
+            editBtn.className = "small-btn";
+            editBtn.onclick = function() { toggleEditForm(candidateId); };
+            card.appendChild(editBtn);
+            const editFormDiv = document.createElement("div");
+            editFormDiv.id = "edit-form-" + candidateId;
+            editFormDiv.style.display = "none";
+            editFormDiv.innerHTML = `
+              <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
+              <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
+              <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
+              <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
+              <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
+              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')" class="small-btn">Save</button>
+              <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
+            `;
+            card.appendChild(editFormDiv);
           }
-          querySnapshot.forEach(docSnap => {
-            const candidate = docSnap.data();
-            const candidateId = docSnap.id;
-            if (reservedMap[candidateId]) return;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Error loading candidates for section:", err);
+      }
+    }
+    async function loadReservedCandidates() {
+      const container = document.getElementById("reserved-candidates-container");
+      container.innerHTML = "";
+      try {
+        const resSnapshot = await getDocs(collection(db, "reservations"));
+        let reservedList = [];
+        resSnapshot.forEach(docSnap => {
+          const resData = docSnap.data();
+          if (window.currentUser.role !== "administrator") {
+            if (resData.reservedBy === window.currentUser.username) {
+              reservedList.push({ candidateId: docSnap.id, ...resData });
+            }
+          } else {
+            reservedList.push({ candidateId: docSnap.id, ...resData });
+          }
+        });
+        // Apply filter if set
+        if (reservationFilter.field && reservationFilter.value) {
+          reservedList = reservedList.filter(r => {
+            const fieldValue = r[reservationFilter.field] ? r[reservationFilter.field].toString().toLowerCase() : "";
+            return fieldValue.includes(reservationFilter.value.toLowerCase());
+          });
+        }
+        if (reservedList.length === 0) {
+          container.innerHTML = "<p>No reserved candidates available.</p>";
+          return;
+        }
+        for (const reservation of reservedList) {
+          const candidateDoc = await getDoc(doc(db, "candidates", reservation.candidateId));
+          if (candidateDoc.exists()) {
+            const candidate = candidateDoc.data();
+            const candidateId = reservation.candidateId;
             const card = document.createElement('div');
             card.className = 'item-card';
-            // Build media HTML: image is always shown; video if available.
+            let extraInfo = "";
+            if (window.currentUser.role === "administrator") {
+              extraInfo = `<em>Reserved by: ${reservation.reservedBy}</em><br>
+              <em>Customer Name: ${reservation.customerName}</em><br>
+              <em>Phone: ${reservation.customerPhone}</em><br>
+              <em>Secretary: ${reservation.secretaryName}</em><br>
+              <em>Date: ${reservation.reservationDate}</em><br>
+              <em>Price: ${reservation.price}</em><br>
+              <em>Trial Details: ${reservation.trialDetails || ""}</em><br>`;
+            }
             const mediaHtml = `
               <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
               ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
             `;
             card.innerHTML = mediaHtml + `
               <p>
-                <strong>Age:</strong> ${candidate.age}<br>
-                <strong>Experience:</strong> ${candidate.experience}<br>
-                <strong>Languages:</strong> ${candidate.languages}<br>
-                <strong>Skills:</strong> ${candidate.skills}<br>
-                <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
+              <strong>Age:</strong> ${candidate.age}<br>
+              <strong>Experience:</strong> ${candidate.experience}<br>
+              <strong>Languages:</strong> ${candidate.languages}<br>
+              <strong>Skills:</strong> ${candidate.skills}<br>
+              <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}<br>
+              ${extraInfo}
               </p>
             `;
-            // Reserve button to open reservation modal
-            const reserveBtn = document.createElement("button");
-            reserveBtn.innerText = "Reserve";
-            reserveBtn.className = "reserve-button";
-            reserveBtn.onclick = function() { showReservationForm(candidateId, country, containerId); };
-            card.appendChild(reserveBtn);
-            if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
-              const deleteBtn = document.createElement("button");
-              deleteBtn.innerText = "Delete";
-              deleteBtn.className = "small-btn red";
-              deleteBtn.onclick = function() { deleteCandidate(candidateId, containerId, country); };
-              card.appendChild(deleteBtn);
+            // If reservation not transferred, add countdown timer and a "Transfer" button
+            if (!reservation.transferred) {
+              const countdownDiv = document.createElement("div");
+              countdownDiv.id = "countdown-" + candidateId;
+              countdownDiv.style.marginTop = "10px";
+              card.appendChild(countdownDiv);
+              const transferBtn = document.createElement("button");
+              transferBtn.innerText = "Transfer";
+              transferBtn.className = "btn";
+              transferBtn.style.marginTop = "5px";
+              transferBtn.onclick = function() { updateReservationTransferred(candidateId); };
+              card.appendChild(transferBtn);
+              startCountdown(candidateId, reservation.expirationTimestamp, countdownDiv);
+            } else {
+              const transferredLabel = document.createElement("div");
+              transferredLabel.innerText = "Transferred";
+              transferredLabel.style.marginTop = "10px";
+              transferredLabel.style.color = "grey";
+              card.appendChild(transferredLabel);
+            }
+            // Add the Cancel Reservation button
+            if (window.currentUser.role === "administrator" || reservation.reservedBy === window.currentUser.username) {
+              const cancelReserveBtn = document.createElement("button");
+              cancelReserveBtn.innerText = "Cancel Reservation";
+              cancelReserveBtn.className = "reserve-button";
+              cancelReserveBtn.style.backgroundColor = "#f44336";
+              cancelReserveBtn.onclick = function() { cancelReservation(candidateId, null, "reserved-candidates-container", true); };
+              card.appendChild(cancelReserveBtn);
+            }
+            // Allow editing if current user is admin, maidmanager, or the reserver
+            if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager" || reservation.reservedBy === window.currentUser.username)) {
               const editBtn = document.createElement("button");
               editBtn.innerText = "Edit";
               editBtn.className = "small-btn";
@@ -851,654 +926,613 @@
                 <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
                 <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
                 <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
-                <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')" class="small-btn">Save</button>
+                <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'reserved')" class="small-btn">Save</button>
                 <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
               `;
               card.appendChild(editFormDiv);
             }
             container.appendChild(card);
-          });
-        } catch (err) {
-          console.error("Error loading candidates for section:", err);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading reserved candidates:", err);
+      }
+    }
+    // Function to update 'transferred' status in a reservation
+    async function updateReservationTransferred(candidateId) {
+      try {
+        await updateDoc(doc(db, "reservations", candidateId), { transferred: true });
+        loadReservedCandidates();
+      } catch (err) {
+        console.error("Error updating transferred status:", err);
+      }
+    }
+    // Countdown Timer function
+    function startCountdown(reservationId, expirationTimestamp, displayElement) {
+      function updateCountdown() {
+        const now = Date.now();
+        let diff = expirationTimestamp - now;
+        if (diff <= 0) {
+          clearInterval(intervalId);
+          displayElement.innerText = "Expired";
+          const expiredLabel = document.createElement("div");
+          expiredLabel.innerText = "Countdown expired!";
+          expiredLabel.style.color = "red";
+          displayElement.parentElement.appendChild(expiredLabel);
+        } else {
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          diff -= days * 1000 * 60 * 60 * 24;
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          diff -= hours * 1000 * 60 * 60;
+          const minutes = Math.floor(diff / (1000 * 60));
+          diff -= minutes * 1000 * 60;
+          const seconds = Math.floor(diff / 1000);
+          displayElement.innerText = "Time left: " + days + "d " + hours + "h " + minutes + "m " + seconds + "s";
         }
       }
-
-      async function loadReservedCandidates() {
-        const container = document.getElementById("reserved-candidates-container");
-        container.innerHTML = "";
+      updateCountdown();
+      const intervalId = setInterval(updateCountdown, 1000);
+      displayElement.dataset.intervalId = intervalId;
+    }
+    async function deleteCandidate(candidateId, containerId, country) {
+      if (confirm("Are you sure you want to delete this candidate?")) {
         try {
-          const resSnapshot = await getDocs(collection(db, "reservations"));
-          let reservedList = [];
-          resSnapshot.forEach(docSnap => {
-            const resData = docSnap.data();
-            if (window.currentUser.role !== "administrator") {
-              if (resData.reservedBy === window.currentUser.username) {
-                reservedList.push({ candidateId: docSnap.id, ...resData });
-              }
-            } else {
-              reservedList.push({ candidateId: docSnap.id, ...resData });
-            }
-          });
-          // Apply filter if set
-          if (reservationFilter.field && reservationFilter.value) {
-            reservedList = reservedList.filter(r => {
-              const fieldValue = r[reservationFilter.field] ? r[reservationFilter.field].toString().toLowerCase() : "";
-              return fieldValue.includes(reservationFilter.value.toLowerCase());
-            });
-          }
-          if (reservedList.length === 0) {
-            container.innerHTML = "<p>No reserved candidates available.</p>";
-            return;
-          }
-          for (const reservation of reservedList) {
-            const candidateDoc = await getDoc(doc(db, "candidates", reservation.candidateId));
-            if (candidateDoc.exists()) {
-              const candidate = candidateDoc.data();
-              const candidateId = reservation.candidateId;
-              const card = document.createElement('div');
-              card.className = 'item-card';
-              let extraInfo = "";
-              if (window.currentUser.role === "administrator") {
-                extraInfo = `<em>Reserved by: ${reservation.reservedBy}</em><br>
-                <em>Customer Name: ${reservation.customerName}</em><br>
-                <em>Phone: ${reservation.customerPhone}</em><br>
-                <em>Secretary: ${reservation.secretaryName}</em><br>
-                <em>Date: ${reservation.reservationDate}</em><br>
-                <em>Price: ${reservation.price}</em><br>
-                <em>Trial Details: ${reservation.trialDetails || ""}</em><br>`;
-              }
-              const mediaHtml = `
-                <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
-                ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
-              `;
-              card.innerHTML = mediaHtml + `
-                <p>
-                  <strong>Age:</strong> ${candidate.age}<br>
-                  <strong>Experience:</strong> ${candidate.experience}<br>
-                  <strong>Languages:</strong> ${candidate.languages}<br>
-                  <strong>Skills:</strong> ${candidate.skills}<br>
-                  <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}<br>
-                  ${extraInfo}
-                </p>
-              `;
-              // If reservation not transferred, add countdown timer and a "Transfer" button
-              if (!reservation.transferred) {
-                const countdownDiv = document.createElement("div");
-                countdownDiv.id = "countdown-" + candidateId;
-                countdownDiv.style.marginTop = "10px";
-                card.appendChild(countdownDiv);
-                const transferBtn = document.createElement("button");
-                transferBtn.innerText = "Transfer";
-                transferBtn.className = "btn";
-                transferBtn.style.marginTop = "5px";
-                transferBtn.onclick = function() { updateReservationTransferred(candidateId); };
-                card.appendChild(transferBtn);
-                startCountdown(candidateId, reservation.expirationTimestamp, countdownDiv);
-              } else {
-                const transferredLabel = document.createElement("div");
-                transferredLabel.innerText = "Transferred";
-                transferredLabel.style.marginTop = "10px";
-                transferredLabel.style.color = "grey";
-                card.appendChild(transferredLabel);
-              }
-              // Add the Cancel Reservation button
-              if (window.currentUser.role === "administrator" || reservation.reservedBy === window.currentUser.username) {
-                const cancelReserveBtn = document.createElement("button");
-                cancelReserveBtn.innerText = "Cancel Reservation";
-                cancelReserveBtn.className = "reserve-button";
-                cancelReserveBtn.style.backgroundColor = "#f44336";
-                cancelReserveBtn.onclick = function() { cancelReservation(candidateId, null, "reserved-candidates-container", true); };
-                card.appendChild(cancelReserveBtn);
-              }
-              // Allow editing if current user is admin, maidmanager, or the reserver
-              if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager" || reservation.reservedBy === window.currentUser.username)) {
-                const editBtn = document.createElement("button");
-                editBtn.innerText = "Edit";
-                editBtn.className = "small-btn";
-                editBtn.onclick = function() { toggleEditForm(candidateId); };
-                card.appendChild(editBtn);
-                const editFormDiv = document.createElement("div");
-                editFormDiv.id = "edit-form-" + candidateId;
-                editFormDiv.style.display = "none";
-                editFormDiv.innerHTML = `
-                  <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
-                  <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
-                  <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
-                  <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
-                  <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
-                  <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'reserved')" class="small-btn">Save</button>
-                  <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
-                `;
-                card.appendChild(editFormDiv);
-              }
-              container.appendChild(card);
-            }
-          }
-        } catch (err) {
-          console.error("Error loading reserved candidates:", err);
-        }
-      }
-
-      // Function to update 'transferred' status in a reservation
-      async function updateReservationTransferred(candidateId) {
-        try {
-          await updateDoc(doc(db, "reservations", candidateId), { transferred: true });
-          loadReservedCandidates();
-        } catch (err) {
-          console.error("Error updating transferred status:", err);
-        }
-      }
-
-      // Countdown Timer function (UPDATED)
-      function startCountdown(reservationId, expirationTimestamp, displayElement) {
-        let intervalId;
-        function updateCountdown() {
-          const now = Date.now();
-          let diff = expirationTimestamp - now;
-          if (diff <= 0) {
-            clearInterval(intervalId);
-            displayElement.innerText = "Expired";
-            const expiredLabel = document.createElement("div");
-            expiredLabel.innerText = "Countdown expired!";
-            expiredLabel.style.color = "red";
-            displayElement.parentElement.appendChild(expiredLabel);
+          await deleteDoc(doc(db, "candidates", candidateId));
+          await deleteDoc(doc(db, "reservations", candidateId));
+          if (containerId && country) {
+            loadCandidatesForSection(country, containerId);
           } else {
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            diff -= days * 1000 * 60 * 60 * 24;
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            diff -= hours * 1000 * 60 * 60;
-            const minutes = Math.floor(diff / (1000 * 60));
-            diff -= minutes * 1000 * 60;
-            const seconds = Math.floor(diff / 1000);
-            displayElement.innerText = "Time left: " + days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+            loadAllCandidates();
           }
-        }
-        updateCountdown();
-        intervalId = setInterval(updateCountdown, 1000);
-        displayElement.dataset.intervalId = intervalId;
-      }
-
-      async function deleteCandidate(candidateId, containerId, country) {
-        if (confirm("Are you sure you want to delete this candidate?")) {
-          try {
-            await deleteDoc(doc(db, "candidates", candidateId));
-            await deleteDoc(doc(db, "reservations", candidateId));
-            if (containerId && country) {
-              loadCandidatesForSection(country, containerId);
-            } else {
-              loadAllCandidates();
-            }
-          } catch (err) {
-            console.error("Error deleting candidate:", err);
-          }
+        } catch (err) {
+          console.error("Error deleting candidate:", err);
         }
       }
-      function toggleEditForm(candidateId) {
-        const formDiv = document.getElementById("edit-form-" + candidateId);
-        formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
-      }
-      function cancelEditCandidate(candidateId) {
+    }
+    function toggleEditForm(candidateId) {
+      const formDiv = document.getElementById("edit-form-" + candidateId);
+      formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
+    }
+    function cancelEditCandidate(candidateId) {
+      document.getElementById("edit-form-" + candidateId).style.display = "none";
+    }
+    async function updateCandidate(candidateId, country, context) {
+      const updatedAge = document.getElementById(`edit-age-${candidateId}`).value;
+      const updatedExp = document.getElementById(`edit-exp-${candidateId}`).value;
+      const updatedLang = document.getElementById(`edit-lang-${candidateId}`).value;
+      const updatedSkill = document.getElementById(`edit-skill-${candidateId}`).value;
+      const updatedSec = document.getElementById(`edit-sec-${candidateId}`).value;
+      try {
+        await updateDoc(doc(db, "candidates", candidateId), {
+          age: updatedAge,
+          experience: updatedExp,
+          languages: updatedLang,
+          skills: updatedSkill,
+          secretaryInCharge: updatedSec
+        });
         document.getElementById("edit-form-" + candidateId).style.display = "none";
+        if (context === "reserved") {
+          loadReservedCandidates();
+        } else {
+          let containerId = "";
+          const c = country.toLowerCase();
+          if (c === "sri lanka") containerId = "candidates-sri-lanka";
+          else if (c === "nepal") containerId = "candidates-nepal";
+          else if (c === "india") containerId = "candidates-india";
+          else if (c === "africa") containerId = "candidates-africa";
+          else if (c === "philippines") containerId = "candidates-philippines";
+          loadCandidatesForSection(country, containerId);
+        }
+      } catch (err) {
+        console.error("Error updating candidate:", err);
+        alert("Error updating candidate.");
       }
-      async function updateCandidate(candidateId, country, context) {
-        const updatedAge = document.getElementById(`edit-age-${candidateId}`).value;
-        const updatedExp = document.getElementById(`edit-exp-${candidateId}`).value;
-        const updatedLang = document.getElementById(`edit-lang-${candidateId}`).value;
-        const updatedSkill = document.getElementById(`edit-skill-${candidateId}`).value;
-        const updatedSec = document.getElementById(`edit-sec-${candidateId}`).value;
+    }
+    // -----------------------------
+    // New Function: Cancel Reservation
+    // -----------------------------
+    async function cancelReservation(candidateId, country = null, containerId = null, refreshReserved = false) {
+      if (confirm("Are you sure you want to cancel this reservation?")) {
         try {
-          await updateDoc(doc(db, "candidates", candidateId), {
-            age: updatedAge,
-            experience: updatedExp,
-            languages: updatedLang,
-            skills: updatedSkill,
-            secretaryInCharge: updatedSec
-          });
-          document.getElementById("edit-form-" + candidateId).style.display = "none";
-          if (context === "reserved") {
-            loadReservedCandidates();
-          } else {
-            let containerId = "";
+          await deleteDoc(doc(db, "reservations", candidateId));
+          // If country is not provided, fetch candidate details to get country
+          if (!country) {
+            const candidateDoc = await getDoc(doc(db, "candidates", candidateId));
+            if (candidateDoc.exists()) {
+              country = candidateDoc.data().country;
+            }
+          }
+          // If containerId is not provided, determine it based on country
+          if (!containerId) {
             const c = country.toLowerCase();
             if (c === "sri lanka") containerId = "candidates-sri-lanka";
             else if (c === "nepal") containerId = "candidates-nepal";
             else if (c === "india") containerId = "candidates-india";
             else if (c === "africa") containerId = "candidates-africa";
             else if (c === "philippines") containerId = "candidates-philippines";
-            loadCandidatesForSection(country, containerId);
           }
-        } catch (err) {
-          console.error("Error updating candidate:", err);
-          alert("Error updating candidate.");
-        }
-      }
-
-      // -----------------------------
-      // New Function: Cancel Reservation
-      // -----------------------------
-      async function cancelReservation(candidateId, country = null, containerId = null, refreshReserved = false) {
-        if (confirm("Are you sure you want to cancel this reservation?")) {
-          try {
-            await deleteDoc(doc(db, "reservations", candidateId));
-            if (!country) {
-              const candidateDoc = await getDoc(doc(db, "candidates", candidateId));
-              if (candidateDoc.exists()) {
-                country = candidateDoc.data().country;
-              }
-            }
-            if (!containerId) {
-              const c = country.toLowerCase();
-              if (c === "sri lanka") containerId = "candidates-sri-lanka";
-              else if (c === "nepal") containerId = "candidates-nepal";
-              else if (c === "india") containerId = "candidates-india";
-              else if (c === "africa") containerId = "candidates-africa";
-              else if (c === "philippines") containerId = "candidates-philippines";
-            }
-            if (refreshReserved) {
-              loadReservedCandidates();
-            }
-            loadCandidatesForSection(country, containerId);
-          } catch (error) {
-            console.error("Error cancelling reservation:", error);
-            alert("Error cancelling reservation.");
+          if (refreshReserved) {
+            loadReservedCandidates();
           }
-        }
-      }
-
-      // -----------------------------
-      // Admin Panel (User Management) Functions
-      // -----------------------------
-      async function loadUsersList() {
-        const usersListDiv = document.getElementById("users-list");
-        usersListDiv.innerHTML = "";
-        try {
-          const querySnapshot = await getDocs(collection(db, "users"));
-          querySnapshot.forEach(docSnap => {
-            const user = docSnap.data();
-            const userDiv = document.createElement("div");
-            userDiv.className = "user-entry";
-            userDiv.innerHTML = `<strong>${user.username}</strong> (${user.role})
-              <button class="small-btn" onclick="toggleChangePasswordForm('${user.username}')">Change Password</button>
-              <button class="small-btn" onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
-              <button class="small-btn red" onclick="deleteUser('${user.username}')">Delete User</button>
-              <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
-                <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
-                <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
-                <span id="update-result-${user.username}"></span>
-              </div>
-              <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
-                <select id="edit-role-${user.username}">
-                  <option value="administrator">Administrator</option>
-                  <option value="maidmanager">Maid Manager</option>
-                  <option value="marketer">Marketer</option>
-                </select>
-                <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
-                <span id="update-role-result-${user.username}"></span>
-              </div>`;
-            usersListDiv.appendChild(userDiv);
-          });
+          loadCandidatesForSection(country, containerId);
         } catch (error) {
-          console.error("Error loading users:", error);
+          console.error("Error cancelling reservation:", error);
+          alert("Error cancelling reservation.");
         }
       }
-      function toggleChangePasswordForm(username) {
-        const formDiv = document.getElementById("change-form-" + username);
-        formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
+    }
+    // -----------------------------
+    // Admin Panel (User Management) Functions
+    // -----------------------------
+    async function loadUsersList() {
+      const usersListDiv = document.getElementById("users-list");
+      usersListDiv.innerHTML = "";
+      try {
+        const querySnapshot = await getDocs(collection(db, "users"));
+        querySnapshot.forEach(docSnap => {
+          const user = docSnap.data();
+          const userDiv = document.createElement("div");
+          userDiv.className = "user-entry";
+          userDiv.innerHTML = `<strong>${user.username}</strong> (${user.role})
+          <button class="small-btn" onclick="toggleChangePasswordForm('${user.username}')">Change Password</button>
+          <button class="small-btn" onclick="toggleEditRoleForm('${user.username}', '${user.role}')">Edit Role</button>
+          <button class="small-btn red" onclick="deleteUser('${user.username}')">Delete User</button>
+          <div id="change-form-${user.username}" style="display:none; margin-top: 5px;">
+            <input type="password" id="new-pass-${user.username}" placeholder="New Password" />
+            <button class="small-btn" onclick="updateUserPassword('${user.username}')">Update Password</button>
+            <span id="update-result-${user.username}"></span>
+          </div>
+          <div id="edit-form-${user.username}" style="display:none; margin-top: 5px;">
+            <select id="edit-role-${user.username}">
+              <option value="administrator">Administrator</option>
+              <option value="maidmanager">Maid Manager</option>
+              <option value="marketer">Marketer</option>
+            </select>
+            <button class="small-btn" onclick="updateUserRole('${user.username}')">Update Role</button>
+            <span id="update-role-result-${user.username}"></span>
+          </div>`;
+          usersListDiv.appendChild(userDiv);
+        });
+      } catch (error) {
+        console.error("Error loading users:", error);
       }
-      function toggleEditRoleForm(username, currentRole) {
-        const formDiv = document.getElementById("edit-form-" + username);
-        if (formDiv.style.display === "none" || formDiv.style.display === "") {
-          formDiv.style.display = "block";
-          document.getElementById("edit-role-" + username).value = currentRole;
+    }
+    function toggleChangePasswordForm(username) {
+      const formDiv = document.getElementById("change-form-" + username);
+      formDiv.style.display = (formDiv.style.display === "none" || formDiv.style.display === "") ? "block" : "none";
+    }
+    function toggleEditRoleForm(username, currentRole) {
+      const formDiv = document.getElementById("edit-form-" + username);
+      if (formDiv.style.display === "none" || formDiv.style.display === "") {
+        formDiv.style.display = "block";
+        document.getElementById("edit-role-" + username).value = currentRole;
+      } else {
+        formDiv.style.display = "none";
+      }
+    }
+    async function updateUserPassword(username) {
+      const newPassInput = document.getElementById("new-pass-" + username);
+      const newPassword = newPassInput.value;
+      const resultSpan = document.getElementById("update-result-" + username);
+      if (!newPassword) {
+        resultSpan.innerText = "Enter a new password.";
+        return;
+      }
+      try {
+        const userRef = doc(db, "users", username);
+        await updateDoc(userRef, { password: newPassword });
+        resultSpan.style.color = "green";
+        resultSpan.innerText = "Updated successfully.";
+      } catch (error) {
+        resultSpan.style.color = "red";
+        resultSpan.innerText = "Error updating.";
+        console.error("Error:", error);
+      }
+    }
+    async function updateUserRole(username) {
+      const newRole = document.getElementById("edit-role-" + username).value;
+      const resultSpan = document.getElementById("update-role-result-" + username);
+      try {
+        const userRef = doc(db, "users", username);
+        await updateDoc(userRef, { role: newRole });
+        resultSpan.style.color = "green";
+        resultSpan.innerText = "Updated successfully.";
+        loadUsersList();
+      } catch (error) {
+        resultSpan.style.color = "red";
+        resultSpan.innerText = "Error updating.";
+        console.error("Error:", error);
+      }
+    }
+    async function deleteUser(username) {
+      if (confirm("Are you sure you want to delete this user?")) {
+        try {
+          await deleteDoc(doc(db, "users", username));
+          loadUsersList();
+        } catch (error) {
+          console.error("Error deleting user:", error);
+        }
+      }
+    }
+    // -----------------------------
+    // Add New User Functionality
+    // -----------------------------
+    document.getElementById("add-user-form").addEventListener("submit", async function(event) {
+      event.preventDefault();
+      const newUsername = document.getElementById("new-username").value.trim();
+      const newRole = document.getElementById("new-role").value;
+      const newPassword = document.getElementById("new-password").value;
+      const errorElem = document.getElementById("add-user-error");
+      const successElem = document.getElementById("add-user-success");
+      errorElem.innerText = "";
+      successElem.innerText = "";
+      if (!newUsername || !newPassword) {
+        errorElem.innerText = "Username and password are required.";
+        return;
+      }
+      try {
+        const userDocRef = doc(db, "users", newUsername);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          errorElem.innerText = "User already exists.";
+          return;
+        }
+        await setDoc(userDocRef, {
+          username: newUsername,
+          role: newRole,
+          password: newPassword
+        });
+        successElem.innerText = "User added successfully!";
+        document.getElementById("new-username").value = "";
+        document.getElementById("new-password").value = "";
+        loadUsersList();
+      } catch (error) {
+        console.error("Error adding user:", error);
+        errorElem.innerText = "Error adding user. Please try again.";
+      }
+    });
+    // -----------------------------
+    // Change Password (Self-Service)
+    // -----------------------------
+    function showChangePasswordPanel() {
+      document.getElementById("change-password-panel").style.display = "block";
+    }
+    function hideChangePasswordPanel() {
+      document.getElementById("change-password-panel").style.display = "none";
+    }
+    document.getElementById("change-password-form").addEventListener("submit", async function(event) {
+      event.preventDefault();
+      const currentPass = document.getElementById("current-password").value;
+      const newPass = document.getElementById("new-user-password").value;
+      const confirmPass = document.getElementById("confirm-new-password").value;
+      const errorMsg = document.getElementById("change-password-error");
+      const successMsg = document.getElementById("change-password-success");
+      if (!window.currentUser || currentPass !== window.currentUser.password) {
+        errorMsg.innerText = "Current password is incorrect.";
+        successMsg.innerText = "";
+        return;
+      }
+      if (newPass !== confirmPass) {
+        errorMsg.innerText = "New password and confirm password do not match.";
+        successMsg.innerText = "";
+        return;
+      }
+      try {
+        const userRef = doc(db, "users", window.currentUser.username);
+        await updateDoc(userRef, { password: newPass });
+        window.currentUser.password = newPass;
+        errorMsg.innerText = "";
+        successMsg.innerText = "Password updated successfully.";
+        document.getElementById("current-password").value = "";
+        document.getElementById("new-user-password").value = "";
+        document.getElementById("confirm-new-password").value = "";
+      } catch (error) {
+        errorMsg.innerText = "Error updating password.";
+        successMsg.innerText = "";
+        console.error("Error:", error);
+      }
+    });
+    // -----------------------------
+    // Candidate Management Panel (Adding Candidates)
+    // -----------------------------
+    document.getElementById("add-candidate-form").addEventListener("submit", async function(event) {
+      event.preventDefault();
+      const country = document.getElementById("candidate-country").value;
+      const age = document.getElementById("candidate-age").value;
+      const experience = document.getElementById("candidate-experience").value;
+      const languages = document.getElementById("candidate-languages").value;
+      const skills = document.getElementById("candidate-skills").value;
+      const secretary = document.getElementById("candidate-secretary").value;
+      const imageFile = document.getElementById("candidate-image").files[0];
+      const videoFile = document.getElementById("candidate-video").files[0];
+      const errorElem = document.getElementById("candidate-add-error");
+      const successElem = document.getElementById("candidate-add-success");
+      errorElem.innerText = "";
+      successElem.innerText = "";
+      try {
+        if (!imageFile) {
+          errorElem.innerText = "Please select an image file.";
+          return;
+        }
+        const imageUrl = await uploadImageToImgur(imageFile);
+        let videoUrl = "";
+        if (videoFile) {
+          videoUrl = await uploadVideoToImgur(videoFile);
+        }
+        await addDoc(collection(db, "candidates"), {
+          country,
+          age,
+          experience,
+          languages,
+          skills,
+          secretaryInCharge: secretary,
+          imageUrl,
+          videoUrl,
+          timestamp: Date.now()
+        });
+        successElem.innerText = "Candidate added successfully.";
+        document.getElementById("candidate-age").value = "";
+        document.getElementById("candidate-experience").value = "";
+        document.getElementById("candidate-languages").value = "";
+        document.getElementById("candidate-skills").value = "";
+        document.getElementById("candidate-secretary").value = "";
+        document.getElementById("candidate-image").value = "";
+        document.getElementById("candidate-video").value = "";
+        loadAllCandidates();
+      } catch (e) {
+        errorElem.innerText = "Error adding candidate.";
+        console.error(e);
+      }
+    });
+    async function loadAllCandidates() {
+      const candidatesListDiv = document.getElementById("candidates-list");
+      candidatesListDiv.innerHTML = "";
+      try {
+        const querySnapshot = await getDocs(collection(db, "candidates"));
+        if (querySnapshot.empty) {
+          candidatesListDiv.innerHTML = "<p>No candidates available.</p>";
+          return;
+        }
+        querySnapshot.forEach(docSnap => {
+          const candidate = docSnap.data();
+          const candidateId = docSnap.id;
+          const candidateDiv = document.createElement("div");
+          candidateDiv.className = "item-card";
+          const mediaHtml = `
+            <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
+            ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
+          `;
+          candidateDiv.innerHTML = mediaHtml + `
+            <p>
+            <strong>Age:</strong> ${candidate.age}<br>
+            <strong>Country:</strong> ${candidate.country}<br>
+            <strong>Experience:</strong> ${candidate.experience}<br>
+            <strong>Languages:</strong> ${candidate.languages}<br>
+            <strong>Skills:</strong> ${candidate.skills}<br>
+            <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
+            </p>
+          `;
+          if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
+            const delButton = document.createElement("button");
+            delButton.innerText = "Delete";
+            delButton.className = "small-btn red";
+            delButton.onclick = function() {
+              deleteCandidate(candidateId);
+              loadAllCandidates();
+            };
+            candidateDiv.appendChild(delButton);
+            const editBtn = document.createElement("button");
+            editBtn.innerText = "Edit";
+            editBtn.className = "small-btn";
+            editBtn.onclick = function() { toggleEditForm(candidateId); };
+            candidateDiv.appendChild(editBtn);
+            const editFormDiv = document.createElement("div");
+            editFormDiv.id = "edit-form-" + candidateId;
+            editFormDiv.style.display = "none";
+            editFormDiv.innerHTML = `
+              <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
+              <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
+              <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
+              <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
+              <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
+              <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')" class="small-btn">Save</button>
+              <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
+            `;
+            candidateDiv.appendChild(editFormDiv);
+          }
+          candidatesListDiv.appendChild(candidateDiv);
+        });
+      } catch (err) {
+        console.error("Error loading candidates:", err);
+      }
+    }
+    // Image Upload Function (to Imgur)
+    async function uploadImageToImgur(file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      try {
+        const response = await fetch('https://api.imgur.com/3/image', {
+          method: 'POST',
+          headers: { Authorization: 'Client-ID 96ba14b0ef97c48' },
+          body: formData
+        });
+        const data = await response.json();
+        if (data.success) {
+          return data.data.link;
         } else {
-          formDiv.style.display = "none";
+          throw new Error("Imgur upload failed");
         }
+      } catch (err) {
+        console.error(err);
+        throw err;
       }
-      async function updateUserPassword(username) {
-        const newPassInput = document.getElementById("new-pass-" + username);
-        const newPassword = newPassInput.value;
-        const resultSpan = document.getElementById("update-result-" + username);
-        if (!newPassword) {
-          resultSpan.innerText = "Enter a new password.";
-          return;
+    }
+    // Video Upload Function (to Imgur)
+    async function uploadVideoToImgur(file) {
+      const formData = new FormData();
+      formData.append('video', file);
+      try {
+        const response = await fetch('https://api.imgur.com/3/upload', {
+          method: 'POST',
+          headers: { Authorization: 'Client-ID 96ba14b0ef97c48' },
+          body: formData
+        });
+        const data = await response.json();
+        if (data.success) {
+          return data.data.link;
+        } else {
+          throw new Error("Video upload failed");
         }
-        try {
-          const userRef = doc(db, "users", username);
-          await updateDoc(userRef, { password: newPassword });
-          resultSpan.style.color = "green";
-          resultSpan.innerText = "Updated successfully.";
-        } catch (error) {
-          resultSpan.style.color = "red";
-          resultSpan.innerText = "Error updating.";
-          console.error("Error:", error);
-        }
+      } catch (err) {
+        console.error(err);
+        throw err;
       }
-      async function updateUserRole(username) {
-        const newRole = document.getElementById("edit-role-" + username).value;
-        const resultSpan = document.getElementById("update-role-result-" + username);
-        try {
-          const userRef = doc(db, "users", username);
-          await updateDoc(userRef, { role: newRole });
-          resultSpan.style.color = "green";
-          resultSpan.innerText = "Updated successfully.";
-          loadUsersList();
-        } catch (error) {
-          resultSpan.style.color = "red";
-          resultSpan.innerText = "Error updating.";
-          console.error("Error:", error);
-        }
+    }
+    // Modal Preview Functions
+    function previewMedia(mediaType, mediaUrl) {
+      const modal = document.getElementById("media-preview-modal");
+      const contentDiv = document.getElementById("media-preview-content");
+      contentDiv.innerHTML = "";
+      if(mediaType === "image") {
+        const img = document.createElement("img");
+        img.src = mediaUrl;
+        img.style.width = "100%";
+        contentDiv.appendChild(img);
+      } else if(mediaType === "video") {
+        const video = document.createElement("video");
+        video.src = mediaUrl;
+        video.controls = true;
+        video.style.width = "100%";
+        contentDiv.appendChild(video);
       }
-      async function deleteUser(username) {
-        if (confirm("Are you sure you want to delete this user?")) {
-          try {
-            await deleteDoc(doc(db, "users", username));
-            loadUsersList();
-          } catch (error) {
-            console.error("Error deleting user:", error);
-          }
-        }
-      }
-      // -----------------------------
-      // Add New User Functionality
-      // -----------------------------
-      document.getElementById("add-user-form").addEventListener("submit", async function(event) {
-        event.preventDefault();
-        const newUsername = document.getElementById("new-username").value.trim();
-        const newRole = document.getElementById("new-role").value;
-        const newPassword = document.getElementById("new-password").value;
-        const errorElem = document.getElementById("add-user-error");
-        const successElem = document.getElementById("add-user-success");
-        errorElem.innerText = "";
-        successElem.innerText = "";
-        if (!newUsername || !newPassword) {
-          errorElem.innerText = "Username and password are required.";
-          return;
-        }
-        try {
-          const userDocRef = doc(db, "users", newUsername);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            errorElem.innerText = "User already exists.";
-            return;
-          }
-          await setDoc(userDocRef, {
-            username: newUsername,
-            role: newRole,
-            password: newPassword
-          });
-          successElem.innerText = "User added successfully!";
-          document.getElementById("new-username").value = "";
-          document.getElementById("new-password").value = "";
-          loadUsersList();
-        } catch (error) {
-          console.error("Error adding user:", error);
-          errorElem.innerText = "Error adding user. Please try again.";
-        }
-      });
-      // -----------------------------
-      // Change Password (Self-Service)
-      // -----------------------------
-      function showChangePasswordPanel() {
-        document.getElementById("change-password-panel").style.display = "block";
-      }
-      function hideChangePasswordPanel() {
-        document.getElementById("change-password-panel").style.display = "none";
-      }
-      document.getElementById("change-password-form").addEventListener("submit", async function(event) {
-        event.preventDefault();
-        const currentPass = document.getElementById("current-password").value;
-        const newPass = document.getElementById("new-user-password").value;
-        const confirmPass = document.getElementById("confirm-new-password").value;
-        const errorMsg = document.getElementById("change-password-error");
-        const successMsg = document.getElementById("change-password-success");
-        if (!window.currentUser || currentPass !== window.currentUser.password) {
-          errorMsg.innerText = "Current password is incorrect.";
-          successMsg.innerText = "";
-          return;
-        }
-        if (newPass !== confirmPass) {
-          errorMsg.innerText = "New password and confirm password do not match.";
-          successMsg.innerText = "";
-          return;
-        }
-        try {
-          const userRef = doc(db, "users", window.currentUser.username);
-          await updateDoc(userRef, { password: newPass });
-          window.currentUser.password = newPass;
-          errorMsg.innerText = "";
-          successMsg.innerText = "Password updated successfully.";
-          document.getElementById("current-password").value = "";
-          document.getElementById("new-user-password").value = "";
-          document.getElementById("confirm-new-password").value = "";
-        } catch (error) {
-          errorMsg.innerText = "Error updating password.";
-          successMsg.innerText = "";
-          console.error("Error:", error);
-        }
-      });
-      // -----------------------------
-      // Candidate Management Panel (Adding Candidates)
-      // -----------------------------
-      document.getElementById("add-candidate-form").addEventListener("submit", async function(event) {
-        event.preventDefault();
-        const country = document.getElementById("candidate-country").value;
-        const age = document.getElementById("candidate-age").value;
-        const experience = document.getElementById("candidate-experience").value;
-        const languages = document.getElementById("candidate-languages").value;
-        const skills = document.getElementById("candidate-skills").value;
-        const secretary = document.getElementById("candidate-secretary").value;
-        const imageFile = document.getElementById("candidate-image").files[0];
-        const videoFile = document.getElementById("candidate-video").files[0];
-        const errorElem = document.getElementById("candidate-add-error");
-        const successElem = document.getElementById("candidate-add-success");
-        errorElem.innerText = "";
-        successElem.innerText = "";
-        try {
-          if (!imageFile) {
-            errorElem.innerText = "Please select an image file.";
-            return;
-          }
-          const imageUrl = await uploadImageToImgur(imageFile);
-          let videoUrl = "";
-          if (videoFile) {
-            videoUrl = await uploadVideoToImgur(videoFile);
-          }
-          await addDoc(collection(db, "candidates"), {
-            country,
-            age,
-            experience,
-            languages,
-            skills,
-            secretaryInCharge: secretary,
-            imageUrl,
-            videoUrl,
-            timestamp: Date.now()
-          });
-          successElem.innerText = "Candidate added successfully.";
-          document.getElementById("candidate-age").value = "";
-          document.getElementById("candidate-experience").value = "";
-          document.getElementById("candidate-languages").value = "";
-          document.getElementById("candidate-skills").value = "";
-          document.getElementById("candidate-secretary").value = "";
-          document.getElementById("candidate-image").value = "";
-          document.getElementById("candidate-video").value = "";
-          loadAllCandidates();
-        } catch (e) {
-          errorElem.innerText = "Error adding candidate.";
-          console.error(e);
-        }
-      });
-      async function loadAllCandidates() {
-        const candidatesListDiv = document.getElementById("candidates-list");
-        candidatesListDiv.innerHTML = "";
-        try {
-          const querySnapshot = await getDocs(collection(db, "candidates"));
-          if (querySnapshot.empty) {
-            candidatesListDiv.innerHTML = "<p>No candidates available.</p>";
-            return;
-          }
-          querySnapshot.forEach(docSnap => {
-            const candidate = docSnap.data();
-            const candidateId = docSnap.id;
-            const candidateDiv = document.createElement("div");
-            candidateDiv.className = "item-card";
-            const mediaHtml = `
-              <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
-              ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
-            `;
-            candidateDiv.innerHTML = mediaHtml + `
-              <p>
-                <strong>Age:</strong> ${candidate.age}<br>
-                <strong>Country:</strong> ${candidate.country}<br>
-                <strong>Experience:</strong> ${candidate.experience}<br>
-                <strong>Languages:</strong> ${candidate.languages}<br>
-                <strong>Skills:</strong> ${candidate.skills}<br>
-                <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}
-              </p>
-            `;
-            if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager")) {
-              const delButton = document.createElement("button");
-              delButton.innerText = "Delete";
-              delButton.className = "small-btn red";
-              delButton.onclick = function() {
-                deleteCandidate(candidateId);
-                loadAllCandidates();
-              };
-              candidateDiv.appendChild(delButton);
-              const editBtn = document.createElement("button");
-              editBtn.innerText = "Edit";
-              editBtn.className = "small-btn";
-              editBtn.onclick = function() { toggleEditForm(candidateId); };
-              candidateDiv.appendChild(editBtn);
-              const editFormDiv = document.createElement("div");
-              editFormDiv.id = "edit-form-" + candidateId;
-              editFormDiv.style.display = "none";
-              editFormDiv.innerHTML = `
-                <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
-                <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
-                <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
-                <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
-                <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
-                <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'normal')" class="small-btn">Save</button>
-                <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
-              `;
-              candidateDiv.appendChild(editFormDiv);
-            }
-            candidatesListDiv.appendChild(candidateDiv);
-          });
-        } catch (err) {
-          console.error("Error loading candidates:", err);
-        }
-      }
-      // Image Upload Function (to Imgur)
-      async function uploadImageToImgur(file) {
-        const formData = new FormData();
-        formData.append('image', file);
-        try {
-          const response = await fetch('https://api.imgur.com/3/image', {
-            method: 'POST',
-            headers: { Authorization: 'Client-ID 96ba14b0ef97c48' },
-            body: formData
-          });
-          const data = await response.json();
-          if (data.success) {
-            return data.data.link;
-          } else {
-            throw new Error("Imgur upload failed");
-          }
-        } catch (err) {
-          console.error(err);
-          throw err;
-        }
-      }
-      // Video Upload Function (to Imgur)
-      async function uploadVideoToImgur(file) {
-        const formData = new FormData();
-        formData.append('video', file);
-        try {
-          const response = await fetch('https://api.imgur.com/3/upload', {
-            method: 'POST',
-            headers: { Authorization: 'Client-ID 96ba14b0ef97c48' },
-            body: formData
-          });
-          const data = await response.json();
-          if (data.success) {
-            return data.data.link;
-          } else {
-            throw new Error("Video upload failed");
-          }
-        } catch (err) {
-          console.error(err);
-          throw err;
-        }
-      }
-      // Modal Preview Functions
-      function previewMedia(mediaType, mediaUrl) {
-        const modal = document.getElementById("media-preview-modal");
-        const contentDiv = document.getElementById("media-preview-content");
-        contentDiv.innerHTML = "";
-        if (mediaType === "image") {
-          const img = document.createElement("img");
-          img.src = mediaUrl;
-          img.style.width = "100%";
-          contentDiv.appendChild(img);
-        } else if (mediaType === "video") {
-          const video = document.createElement("video");
-          video.src = mediaUrl;
-          video.controls = true;
-          video.style.width = "100%";
-          contentDiv.appendChild(video);
-        }
-        modal.style.display = "block";
-      }
-      function closeModal() {
-        document.getElementById("media-preview-modal").style.display = "none";
-        document.getElementById("media-preview-content").innerHTML = "";
-      }
-      // Reservation Filter Functions
-      document.getElementById("filter-form").addEventListener("submit", function(event) {
-        event.preventDefault();
-        reservationFilter.field = document.getElementById("filter-field").value;
-        reservationFilter.value = document.getElementById("filter-value").value;
-        loadReservedCandidates();
-      });
-      function clearFilter() {
-        reservationFilter.field = "";
-        reservationFilter.value = "";
-        document.getElementById("filter-field").value = "";
-        document.getElementById("filter-value").value = "";
-        loadReservedCandidates();
-      }
-      // On DOM Content Loaded: ensure admin exists and show the login screen.
-      document.addEventListener("DOMContentLoaded", async () => {
-        await ensureAdminExists();
-        document.getElementById("login-div").style.display = "block";
-        document.getElementById("home").style.display = "none";
-      });
-      // Expose functions to global window object for inline event handlers
-      window.loadCandidatesForSection = loadCandidatesForSection;
-      window.deleteCandidate = deleteCandidate;
-      window.toggleEditForm = toggleEditForm;
-      window.cancelEditCandidate = cancelEditCandidate;
-      window.updateCandidate = updateCandidate;
-      window.loadReservedCandidates = loadReservedCandidates;
-      window.loadUsersList = loadUsersList;
-      window.toggleChangePasswordForm = toggleChangePasswordForm;
-      window.toggleEditRoleForm = toggleEditRoleForm;
-      window.updateUserPassword = updateUserPassword;
-      window.updateUserRole = updateUserRole;
-      window.deleteUser = deleteUser;
-      window.cancelReservation = cancelReservation;
-      window.logout = logout;
-      window.goHome = goHome;
-      window.openSection = openSection;
-      window.openReservedSection = openReservedSection;
-      window.showChangePasswordPanel = showChangePasswordPanel;
-      window.hideChangePasswordPanel = hideChangePasswordPanel;
-      window.previewMedia = previewMedia;
-      window.closeModal = closeModal;
-      window.showReservationForm = showReservationForm;
-      window.closeReservationModal = closeReservationModal;
-    </script>
-  </body>
+      modal.style.display = "block";
+    }
+    function closeModal() {
+      document.getElementById("media-preview-modal").style.display = "none";
+      document.getElementById("media-preview-content").innerHTML = "";
+    }
+    // Reservation Filter Functions
+    document.getElementById("filter-form").addEventListener("submit", function(event) {
+      event.preventDefault();
+      reservationFilter.field = document.getElementById("filter-field").value;
+      reservationFilter.value = document.getElementById("filter-value").value;
+      loadReservedCandidates();
+    });
+    function clearFilter() {
+      reservationFilter.field = "";
+      reservationFilter.value = "";
+      document.getElementById("filter-field").value = "";
+      document.getElementById("filter-value").value = "";
+      loadReservedCandidates();
+    }
+    // On DOM Content Loaded: ensure admin exists and show the login screen.
+    document.addEventListener("DOMContentLoaded", async () => {
+      await ensureAdminExists();
+      document.getElementById("login-div").style.display = "block";
+      document.getElementById("home").style.display = "none";
+    });
+// -- REQUEST FEATURE FUNCTIONS --
+
+function showRequestModal() {
+  document.getElementById("request-modal").style.display = "block";
+}
+function closeRequestModal() {
+  document.getElementById("request-modal").style.display = "none";
+  document.getElementById("request-form").reset();
+}
+function closeRequestDetailModal() {
+  document.getElementById("request-detail-modal").style.display = "none";
+}
+
+document.getElementById("request-form").addEventListener("submit", async function(event) {
+  event.preventDefault();
+  const name    = document.getElementById("req-customer-name").value;
+  const phone   = document.getElementById("req-customer-phone").value;
+  const details = document.getElementById("req-details").value;
+  const sec     = document.getElementById("req-secretary").value;
+  try {
+    await addDoc(collection(db, "requests"), {
+      customerName: name,
+      customerPhone: phone,
+      requestDetails: details,
+      secretaryInCharge: sec,
+      createdBy: window.currentUser.username,
+      timestamp: Date.now()
+    });
+    closeRequestModal();
+    openSection("request-section");
++closeRequestModal();
++goHome();              // back to the main Home panel
+    loadRequestsList();
+  } catch (err) {
+    console.error("Error creating request:", err);
+    alert("Error creating request.");
+  }
+});
+
+async function loadRequestsList() {
+  const container = document.getElementById("requests-list");
+  container.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "requests"));
+  if (snapshot.empty) {
+    container.innerHTML = "<p>No requests found.</p>";
+    return;
+  }
+  snapshot.forEach(docSnap => {
+    const r = docSnap.data(), id = docSnap.id;
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.innerHTML = `<strong>${r.customerName}</strong>`;
+    card.onclick = () => showRequestDetail(id);
+    container.appendChild(card);
+  });
+}
+
+async function showRequestDetail(requestId) {
+  const snap = await getDoc(doc(db, "requests", requestId));
+  if (!snap.exists()) return;
+  const r = snap.data();
+  document.getElementById("request-detail-content").innerHTML = `
+    <h2>Request Details</h2>
+    <p><strong>Customer Name:</strong> ${r.customerName}</p>
+    <p><strong>Phone:</strong> ${r.customerPhone}</p>
+    <p><strong>Details:</strong> ${r.requestDetails}</p>
+    <p><strong>Secretary:</strong> ${r.secretaryInCharge}</p>
+    <p><em>Created by: ${r.createdBy}</em></p>
+  `;
+  document.getElementById("request-detail-modal").style.display = "block";
+}
+
+    // Expose functions to global window object for inline event handlers
+    window.loadCandidatesForSection = loadCandidatesForSection;
+    window.deleteCandidate = deleteCandidate;
+    window.toggleEditForm = toggleEditForm;
+    window.cancelEditCandidate = cancelEditCandidate;
+    window.updateCandidate = updateCandidate;
+    window.loadReservedCandidates = loadReservedCandidates;
+    window.loadUsersList = loadUsersList;
+    window.toggleChangePasswordForm = toggleChangePasswordForm;
+    window.toggleEditRoleForm = toggleEditRoleForm;
+    window.updateUserPassword = updateUserPassword;
+    window.updateUserRole = updateUserRole;
+    window.deleteUser = deleteUser;
+    window.cancelReservation = cancelReservation;
+    window.logout = logout;
+    window.goHome = goHome;
+    window.openSection = openSection;
+    window.openReservedSection = openReservedSection;
+    window.showChangePasswordPanel = showChangePasswordPanel;
+    window.hideChangePasswordPanel = hideChangePasswordPanel;
+    window.previewMedia = previewMedia;
+    window.closeModal = closeModal;
+    window.showReservationForm = showReservationForm;
+    window.closeReservationModal = closeReservationModal;
+window.showRequestModal         = showRequestModal;
+window.closeRequestModal        = closeRequestModal;
+window.loadRequestsList         = loadRequestsList;
+window.showRequestDetail        = showRequestDetail;
+window.closeRequestDetailModal  = closeRequestDetailModal;
+
+  </script>
+</body>
 </html>
