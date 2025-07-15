@@ -824,137 +824,120 @@
       }
     }
     async function loadReservedCandidates() {
-  const container = document.getElementById("reserved-candidates-container");
-  container.innerHTML = "";
-
-  try {
-    const resSnapshot = await getDocs(collection(db, "reservations"));
-    let reservedList = [];
-
-    // Build reserved list based on role
-    resSnapshot.forEach(docSnap => {
-      const r = docSnap.data();
-      const record = { candidateId: docSnap.id, ...r };
-      if (window.currentUser.role === "administrator") {
-        reservedList.push(record);
-      } else if (r.reservedBy === window.currentUser.username) {
-        reservedList.push(record);
+      const container = document.getElementById("reserved-candidates-container");
+      container.innerHTML = "";
+      try {
+        const resSnapshot = await getDocs(collection(db, "reservations"));
+        let reservedList = [];
+        resSnapshot.forEach(docSnap => {
+          const resData = docSnap.data();
+          if (window.currentUser.role !== "administrator") {
+            if (resData.reservedBy === window.currentUser.username) {
+              reservedList.push({ candidateId: docSnap.id, ...resData });
+            }
+          } else {
+            reservedList.push({ candidateId: docSnap.id, ...resData });
+          }
+        });
+        // Apply filter if set
+        if (reservationFilter.field && reservationFilter.value) {
+          reservedList = reservedList.filter(r => {
+            const fieldValue = r[reservationFilter.field] ? r[reservationFilter.field].toString().toLowerCase() : "";
+            return fieldValue.includes(reservationFilter.value.toLowerCase());
+          });
+        }
+        if (reservedList.length === 0) {
+          container.innerHTML = "<p>No reserved candidates available.</p>";
+          return;
+        }
+        for (const reservation of reservedList) {
+          const candidateDoc = await getDoc(doc(db, "candidates", reservation.candidateId));
+          if (candidateDoc.exists()) {
+            const candidate = candidateDoc.data();
+            const candidateId = reservation.candidateId;
+            const card = document.createElement('div');
+            card.className = 'item-card';
+            let extraInfo = "";
+            if (window.currentUser.role === "administrator") {
+              extraInfo = `<em>Reserved by: ${reservation.reservedBy}</em><br>
+              <em>Customer Name: ${reservation.customerName}</em><br>
+              <em>Phone: ${reservation.customerPhone}</em><br>
+              <em>Secretary: ${reservation.secretaryName}</em><br>
+              <em>Date: ${reservation.reservationDate}</em><br>
+              <em>Price: ${reservation.price}</em><br>
+              <em>Trial Details: ${reservation.trialDetails || ""}</em><br>`;
+            }
+            const mediaHtml = `
+              <img src="${candidate.imageUrl}" alt="Candidate Image" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
+              ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
+            `;
+            card.innerHTML = mediaHtml + `
+              <p>
+              <strong>Age:</strong> ${candidate.age}<br>
+              <strong>Experience:</strong> ${candidate.experience}<br>
+              <strong>Languages:</strong> ${candidate.languages}<br>
+              <strong>Skills:</strong> ${candidate.skills}<br>
+              <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge || ""}<br>
+              ${extraInfo}
+              </p>
+            `;
+            // If reservation not transferred, add countdown timer and a "Transfer" button
+            if (!reservation.transferred) {
+              const countdownDiv = document.createElement("div");
+              countdownDiv.id = "countdown-" + candidateId;
+              countdownDiv.style.marginTop = "10px";
+              card.appendChild(countdownDiv);
+              const transferBtn = document.createElement("button");
+              transferBtn.innerText = "Transfer";
+              transferBtn.className = "btn";
+              transferBtn.style.marginTop = "5px";
+              transferBtn.onclick = function() { updateReservationTransferred(candidateId); };
+              card.appendChild(transferBtn);
+              startCountdown(candidateId, reservation.expirationTimestamp, countdownDiv);
+            } else {
+              const transferredLabel = document.createElement("div");
+              transferredLabel.innerText = "Transferred";
+              transferredLabel.style.marginTop = "10px";
+              transferredLabel.style.color = "grey";
+              card.appendChild(transferredLabel);
+            }
+            // Add the Cancel Reservation button
+            if (window.currentUser.role === "administrator" || reservation.reservedBy === window.currentUser.username) {
+              const cancelReserveBtn = document.createElement("button");
+              cancelReserveBtn.innerText = "Cancel Reservation";
+              cancelReserveBtn.className = "reserve-button";
+              cancelReserveBtn.style.backgroundColor = "#f44336";
+              cancelReserveBtn.onclick = function() { cancelReservation(candidateId, null, "reserved-candidates-container", true); };
+              card.appendChild(cancelReserveBtn);
+            }
+            // Allow editing if current user is admin, maidmanager, or the reserver
+            if (window.currentUser && (window.currentUser.role === "administrator" || window.currentUser.role === "maidmanager" || reservation.reservedBy === window.currentUser.username)) {
+              const editBtn = document.createElement("button");
+              editBtn.innerText = "Edit";
+              editBtn.className = "small-btn";
+              editBtn.onclick = function() { toggleEditForm(candidateId); };
+              card.appendChild(editBtn);
+              const editFormDiv = document.createElement("div");
+              editFormDiv.id = "edit-form-" + candidateId;
+              editFormDiv.style.display = "none";
+              editFormDiv.innerHTML = `
+                <input type="text" id="edit-age-${candidateId}" placeholder="Age" value="${candidate.age}" /><br>
+                <input type="text" id="edit-exp-${candidateId}" placeholder="Experience" value="${candidate.experience}" /><br>
+                <input type="text" id="edit-lang-${candidateId}" placeholder="Languages" value="${candidate.languages}" /><br>
+                <input type="text" id="edit-skill-${candidateId}" placeholder="Skills" value="${candidate.skills}" /><br>
+                <input type="text" id="edit-sec-${candidateId}" placeholder="Secretary In Charge" value="${candidate.secretaryInCharge || ''}" /><br>
+                <button onclick="updateCandidate('${candidateId}', '${candidate.country}', 'reserved')" class="small-btn">Save</button>
+                <button onclick="cancelEditCandidate('${candidateId}')" class="small-btn red">Cancel</button>
+              `;
+              card.appendChild(editFormDiv);
+            }
+            container.appendChild(card);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading reserved candidates:", err);
       }
-    });
-
-    // Filter logic
-    if (reservationFilter.field && reservationFilter.value) {
-      reservedList = reservedList.filter(r => {
-        const val = (r[reservationFilter.field] || "").toString().toLowerCase();
-        return val.includes(reservationFilter.value.toLowerCase());
-      });
     }
-
-    if (reservedList.length === 0) {
-      container.innerHTML = "<p>No reserved candidates available.</p>";
-      return;
-    }
-
-    // Render each reservation
-    for (const reservation of reservedList) {
-      const candidateRef = doc(db, "candidates", reservation.candidateId);
-      const candidateSnap = await getDoc(candidateRef);
-
-      const candidate = candidateSnap.exists()
-        ? candidateSnap.data()
-        : {
-            age: "N/A",
-            experience: "N/A",
-            languages: "N/A",
-            skills: "N/A",
-            secretaryInCharge: "N/A",
-            imageUrl: "https://via.placeholder.com/200",
-            videoUrl: ""
-          };
-
-      const card = document.createElement("div");
-      card.className = "item-card";
-
-      let extraInfo = "";
-      if (window.currentUser.role === "administrator") {
-        extraInfo = `<em>Reserved by: ${reservation.reservedBy}</em><br>
-        <em>Customer Name: ${reservation.customerName}</em><br>
-        <em>Phone: ${reservation.customerPhone}</em><br>
-        <em>Secretary: ${reservation.secretaryName}</em><br>
-        <em>Date: ${reservation.reservationDate}</em><br>
-        <em>Price: ${reservation.price}</em><br>
-        <em>Trial Details: ${reservation.trialDetails || ""}</em><br>`;
-      }
-
-      const mediaHtml = `
-        <img src="${candidate.imageUrl}" class="item-image" onclick="previewMedia('image','${candidate.imageUrl}')" />
-        ${candidate.videoUrl ? `<video src="${candidate.videoUrl}" class="item-video" controls onclick="previewMedia('video','${candidate.videoUrl}')"></video>` : ""}
-      `;
-
-      card.innerHTML = mediaHtml + `
-        <p>
-        <strong>Age:</strong> ${candidate.age}<br>
-        <strong>Experience:</strong> ${candidate.experience}<br>
-        <strong>Languages:</strong> ${candidate.languages}<br>
-        <strong>Skills:</strong> ${candidate.skills}<br>
-        <strong>Secretary In Charge:</strong> ${candidate.secretaryInCharge}<br>
-        ${extraInfo}
-        </p>
-      `;
-
-      if (!reservation.transferred) {
-        const countdownDiv = document.createElement("div");
-        countdownDiv.id = "countdown-" + reservation.candidateId;
-        countdownDiv.style.marginTop = "10px";
-        card.appendChild(countdownDiv);
-
-        const transferBtn = document.createElement("button");
-        transferBtn.className = "btn";
-        transferBtn.innerText = "Transfer";
-        transferBtn.onclick = () => updateReservationTransferred(reservation.candidateId);
-        card.appendChild(transferBtn);
-
-        startCountdown(reservation.candidateId, reservation.expirationTimestamp, countdownDiv);
-      } else {
-        const lbl = document.createElement("div");
-        lbl.innerText = "Transferred";
-        lbl.style.marginTop = "10px";
-        lbl.style.color = "grey";
-        card.appendChild(lbl);
-      }
-
-      if (
-        window.currentUser.role === "administrator" ||
-        reservation.reservedBy === window.currentUser.username
-      ) {
-        const cancelBtn = document.createElement("button");
-        cancelBtn.innerText = "Cancel Reservation";
-        cancelBtn.className = "reserve-button";
-        cancelBtn.style.backgroundColor = "#f44336";
-        cancelBtn.onclick = () => cancelReservation(
-          reservation.candidateId, null,
-          "reserved-candidates-container", true
-        );
-        card.appendChild(cancelBtn);
-      }
-
-      if (
-        ["administrator", "maidmanager"].includes(window.currentUser.role) ||
-        reservation.reservedBy === window.currentUser.username
-      ) {
-        const editBtn = document.createElement("button");
-        editBtn.innerText = "Edit";
-        editBtn.className = "small-btn";
-        editBtn.onclick = () => toggleEditForm(reservation.candidateId);
-        card.appendChild(editBtn);
-      }
-
-      container.appendChild(card);
-    }
-  } catch (err) {
-    console.error("Error loading reserved candidates:", err);
-  }
-}
     // Function to update 'transferred' status in a reservation
     async function updateReservationTransferred(candidateId) {
       try {
@@ -965,32 +948,42 @@
       }
     }
     // Countdown Timer function
-    function startCountdown(reservationId, expirationTimestamp, displayElement) {
-      function updateCountdown() {
-        const now = Date.now();
-        let diff = expirationTimestamp - now;
-        if (diff <= 0) {
-          clearInterval(intervalId);
-          displayElement.innerText = "Expired";
-          const expiredLabel = document.createElement("div");
-          expiredLabel.innerText = "Countdown expired!";
-          expiredLabel.style.color = "red";
-          displayElement.parentElement.appendChild(expiredLabel);
-        } else {
-          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-          diff -= days * 1000 * 60 * 60 * 24;
-          const hours = Math.floor(diff / (1000 * 60 * 60));
-          diff -= hours * 1000 * 60 * 60;
-          const minutes = Math.floor(diff / (1000 * 60));
-          diff -= minutes * 1000 * 60;
-          const seconds = Math.floor(diff / 1000);
-          displayElement.innerText = "Time left: " + days + "d " + hours + "h " + minutes + "m " + seconds + "s";
-        }
-      }
-      updateCountdown();
-      const intervalId = setInterval(updateCountdown, 1000);
-      displayElement.dataset.intervalId = intervalId;
+ function startCountdown(reservationId, expirationTimestamp, displayElement) {
+  // Declare intervalId before you use it
+  let intervalId;
+
+  function updateCountdown() {
+    const now = Date.now();
+    let diff = expirationTimestamp - now;
+
+    if (diff <= 0) {
+      clearInterval(intervalId);
+      displayElement.innerText = "Expired";
+      const expiredLabel = document.createElement("div");
+      expiredLabel.innerText = "Countdown expired!";
+      expiredLabel.style.color = "red";
+      displayElement.parentElement.appendChild(expiredLabel);
+    } else {
+      const days    = Math.floor(diff / (1000*60*60*24));
+      diff  -= days * (1000*60*60*24);
+      const hours   = Math.floor(diff / (1000*60*60));
+      diff  -= hours * (1000*60*60);
+      const minutes = Math.floor(diff / (1000*60));
+      diff  -= minutes * (1000*60);
+      const seconds = Math.floor(diff / 1000);
+
+      displayElement.innerText =
+        `Time left: ${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
+  }
+
+  // Kick off the interval, then run immediately
+  intervalId = setInterval(updateCountdown, 1000);
+  updateCountdown();
+
+  // Optionally store it if you need to clear later
+  displayElement.dataset.intervalId = intervalId;
+}
     async function deleteCandidate(candidateId, containerId, country) {
       if (confirm("Are you sure you want to delete this candidate?")) {
         try {
