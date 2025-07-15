@@ -1471,8 +1471,8 @@ document.getElementById("request-form").addEventListener("submit", async functio
     });
     closeRequestModal();
     openSection("request-section");
-+closeRequestModal();
-+goHome();              // back to the main Home panel
+closeRequestModal();
+goHome();              // back to the main Home panel
     loadRequestsList();
   } catch (err) {
     console.error("Error creating request:", err);
@@ -1488,14 +1488,56 @@ async function loadRequestsList() {
     container.innerHTML = "<p>No requests found.</p>";
     return;
   }
-  snapshot.forEach(docSnap => {
-    const r = docSnap.data(), id = docSnap.id;
-    const card = document.createElement("div");
-    card.className = "item-card";
-    card.innerHTML = `<strong>${r.customerName}</strong>`;
-    card.onclick = () => showRequestDetail(id);
-    container.appendChild(card);
-  });
+snapshot.forEach(docSnap => {
+  const r  = docSnap.data(),
+        id = docSnap.id;
+  const card = document.createElement("div");
+  card.className = "item-card";
+
+  // 1) Basic header & click handler
+  card.innerHTML = `<strong>${r.customerName}</strong>`;
+  card.onclick = () => showRequestDetail(id);
+
+  // 2) EDIT DETAILS button
+  const editBtn = document.createElement("button");
+  editBtn.innerText = "Edit";
+  editBtn.className = "small-btn";
+  editBtn.onclick = () => toggleRequestEditForm(id);
+  card.appendChild(editBtn);
+
+  // 3) INLINE EDIT FORM (hidden by default)
+  const editForm = document.createElement("div");
+  editForm.id = `request-edit-form-${id}`;
+  editForm.style.display = "none";
+  editForm.innerHTML = `
+    <input type="text" id="edit-req-name-${id}"
+           value="${r.customerName}" placeholder="Customer Name" /><br>
+    <input type="text" id="edit-req-phone-${id}"
+           value="${r.customerPhone}" placeholder="Phone" /><br>
+    <textarea id="edit-req-details-${id}"
+              placeholder="Details">${r.requestDetails}</textarea><br>
+    <input type="text" id="edit-req-sec-${id}"
+           value="${r.secretaryInCharge}" placeholder="Secretary" /><br>
+    <button class="small-btn"
+            onclick="updateRequest('${id}')">
+      Save
+    </button>
+    <button class="small-btn red"
+            onclick="cancelRequestEdit('${id}')">
+      Cancel
+    </button>
+  `;
+  card.appendChild(editForm);
+
+  // 4) DELETE REQUEST button
+  const deleteBtn = document.createElement("button");
+  deleteBtn.innerText = "Delete";
+  deleteBtn.className = "small-btn red";
+  deleteBtn.onclick = () => deleteRequest(id);
+  card.appendChild(deleteBtn);
+
+  container.appendChild(card);
+});
 }
 
 async function showRequestDetail(requestId) {
@@ -1514,6 +1556,54 @@ async function showRequestDetail(requestId) {
 }
 
     // Expose functions to global window object for inline event handlers
+// Toggle the inline edit form
+function toggleRequestEditForm(requestId) {
+  const form = document.getElementById(`request-edit-form-${requestId}`);
+  form.style.display = form.style.display === "block" ? "none" : "block";
+}
+
+// Hide the edit form without saving
+function cancelRequestEdit(requestId) {
+  document.getElementById(`request-edit-form-${requestId}`)
+          .style.display = "none";
+}
+
+// Save edited request fields back to Firestore
+async function updateRequest(requestId) {
+  const name    = document.getElementById(`edit-req-name-${requestId}`).value;
+  const phone   = document.getElementById(`edit-req-phone-${requestId}`).value;
+  const details = document.getElementById(`edit-req-details-${requestId}`).value;
+  const sec     = document.getElementById(`edit-req-sec-${requestId}`).value;
+
+  try {
+    await updateDoc(
+      doc(db, "requests", requestId),
+      {
+        customerName:      name,
+        customerPhone:     phone,
+        requestDetails:    details,
+        secretaryInCharge: sec
+      }
+    );
+    loadRequestsList();  // Refresh the list
+  } catch (err) {
+    console.error("Error updating request:", err);
+    alert("Failed to update request.");
+  }
+}
+
+// Delete the request document
+async function deleteRequest(requestId) {
+  if (!confirm("Are you sure you want to delete this request?")) return;
+  try {
+    await deleteDoc(doc(db, "requests", requestId));
+    loadRequestsList();
+  } catch (err) {
+    console.error("Error deleting request:", err);
+    alert("Failed to delete request.");
+  }
+}
+
     window.loadCandidatesForSection = loadCandidatesForSection;
     window.deleteCandidate = deleteCandidate;
     window.toggleEditForm = toggleEditForm;
@@ -1541,6 +1631,11 @@ window.showRequestModal         = showRequestModal;
 window.closeRequestModal        = closeRequestModal;
 window.loadRequestsList         = loadRequestsList;
 window.showRequestDetail        = showRequestDetail;
+window.toggleRequestEditForm = toggleRequestEditForm;
+window.cancelRequestEdit     = cancelRequestEdit;
+window.updateRequest         = updateRequest;
+window.deleteRequest         = deleteRequest;
+
 window.closeRequestDetailModal  = closeRequestDetailModal;
 
   </script>
